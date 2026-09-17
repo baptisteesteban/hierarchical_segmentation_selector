@@ -50,6 +50,7 @@ class IndexPage(AbstractPage):
                 
             ], style={'display': 'flex', 'flexDirection': 'column', 'height': '100vh'})
         ]
+        self._currently_selected = set()
         super().__init__(app, "Index", layout)
 
     def _register_callbacks(self):
@@ -58,9 +59,10 @@ class IndexPage(AbstractPage):
             Input("upload-image", "contents"),
             Input("n-segments-input", "value"),
             Input("compactness-inputs", "value"),
-            Input("selection-color", "value")
+            Input("selection-color", "value"),
+            Input("image-graph", "clickData")
         )
-        def display_image(content, n_segments, compactness, border_color):
+        def display_image(content, n_segments, compactness, border_color, click_data):
             def hex_to_rgb(hex_color):
                 hex_color = hex_color.lstrip('#')
                 return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
@@ -68,8 +70,6 @@ class IndexPage(AbstractPage):
             if not content:
                 logger.info("Image content is empty")
                 return go.Figure()
-
-            logger.warning(border_color)
 
             logger.info("Displaying image")
             _, encoded = content.split(",", 1)
@@ -85,6 +85,13 @@ class IndexPage(AbstractPage):
                 logger.error("Invalid compactness")
                 return go.Figure()
 
+            if click_data is not None:
+                lbl = int(click_data["points"][0]["z"])
+                if lbl in self._currently_selected:
+                    self._currently_selected.remove(lbl)
+                else:
+                    self._currently_selected.add(lbl)
+
             displayed_img = img
             if img.ndim == 2:
                 displayed_img = img[:, :, None]
@@ -97,8 +104,11 @@ class IndexPage(AbstractPage):
             dil = dilation(segments, footprint_rectangle((3, 3)))
             borders = segments != dil
             displayed_img[borders] = hex_to_rgb(border_color)
+            for lbl in self._currently_selected:
+                displayed_img[segments == lbl] = hex_to_rgb(border_color)
 
             h, w = img.shape[:2]
             fig = go.Figure()
             fig.add_trace(go.Image(z=displayed_img, hoverinfo="skip"))
+            fig.add_trace(go.Heatmap(z=segments, opacity=0, showscale=False, hovertemplate=None))
             return fig
