@@ -69,7 +69,7 @@ class IndexPage(AbstractPage):
                 hex_color = hex_color.lstrip('#')
                 return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
-            if ctx.triggered_id == "reset-button":
+            if ctx.triggered_id == "reset-button" or ctx.triggered_id == "n-segments-input" or ctx.triggered_id == "compactness-inputs":
                 self._currently_selected.clear()
 
             if not content:
