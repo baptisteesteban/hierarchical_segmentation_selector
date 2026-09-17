@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc, Input, Output
+from dash import Dash, html, dcc, Input, Output, ctx
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 from imageio.v3 import imread
@@ -23,7 +23,8 @@ class IndexPage(AbstractPage):
                 dbc.Card(
                     dbc.Row([
                         dbc.Col(dcc.Upload(children=[dbc.Button("Open Image")], id="upload-image", accept="image/*")),
-                        dbc.Col([dbc.Label("Selection color"), dbc.Input(type="color", id="selection-color", value="#FF0000")])
+                        dbc.Col(dbc.Button("Reset", id="reset-button")),
+                        dbc.Col([dbc.Input(type="color", id="selection-color", value="#FF0000")])
                     ]),
                     body=True),
                 html.Hr(),
@@ -60,12 +61,16 @@ class IndexPage(AbstractPage):
             Input("n-segments-input", "value"),
             Input("compactness-inputs", "value"),
             Input("selection-color", "value"),
-            Input("image-graph", "clickData")
+            Input("image-graph", "clickData"),
+            Input("reset-button", "n_clicks")
         )
-        def display_image(content, n_segments, compactness, border_color, click_data):
+        def display_image(content, n_segments, compactness, border_color, click_data, _btn_reset):
             def hex_to_rgb(hex_color):
                 hex_color = hex_color.lstrip('#')
                 return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+            if ctx.triggered_id == "reset-button":
+                self._currently_selected.clear()
 
             if not content:
                 logger.info("Image content is empty")
@@ -85,7 +90,7 @@ class IndexPage(AbstractPage):
                 logger.error("Invalid compactness")
                 return go.Figure()
 
-            if click_data is not None:
+            if ctx.triggered_id == "image-graph" and click_data is not None:
                 lbl = int(click_data["points"][0]["z"])
                 if lbl in self._currently_selected:
                     self._currently_selected.remove(lbl)
