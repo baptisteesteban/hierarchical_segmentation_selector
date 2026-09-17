@@ -1,0 +1,14 @@
+[project]
+name = "hierarchical_segmentation_frontend"
+version = "0.1.0"
+authors = [
+    {name = "Baptiste Esteban", email = "baptiste.esteban@epita.fr"}
+]
+requires-python = ">=3.13"
+dependencies = [
+    "dash>=4.4.1",
+    "dash-bootstrap-components>=2.0.4",
+    "imageio>=2.37.4",
+    "loguru>=0.7.3",
+    "scikit-image>=0.26.0",
+]
