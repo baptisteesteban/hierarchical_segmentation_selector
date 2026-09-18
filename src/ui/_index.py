@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc, Input, Output, State
+from dash import Dash, html, dcc, Input, Output, State, ctx
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 from imageio.v3 import imread
@@ -148,7 +148,7 @@ class IndexPage(AbstractPage):
                 return None
     
             displayed_np = None
-            if click is not None:
+            if ctx.triggered_id == "image-graph" and click is not None:
                 displayed_np = np.asarray(displayed)
                 label_map_np = np.asarray(label_map)
                 data = click["points"][0]
