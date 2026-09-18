@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc, Input, Output, ctx
+from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 from imageio.v3 import imread
@@ -23,7 +23,7 @@ class IndexPage(AbstractPage):
                 dbc.Card(
                     dbc.Row([
                         dbc.Col(dcc.Upload(children=[dbc.Button("Open Image")], id="upload-image", accept="image/*")),
-                        dbc.Col(dbc.Button("Reset", id="reset-button")),
+                        #dbc.Col(dbc.Button("Reset", id="reset-button")),
                         dbc.Col([dbc.Input(type="color", id="selection-color", value="#FF0000")])
                     ]),
                     body=True),
@@ -39,7 +39,7 @@ class IndexPage(AbstractPage):
                     dbc.Col([
                         dbc.Card([
                             dbc.Label("Compactness"),
-                            dbc.Input(id="compactness-inputs", type="number", value=10)
+                            dbc.Input(id="compactness-input", type="number", value=10)
                         ],
                         body=True)
                     ])
@@ -49,71 +49,119 @@ class IndexPage(AbstractPage):
                     dbc.Col(html.H3("TODO ! (Dendrogram)"))
                 ]),
                 
-            ], style={'display': 'flex', 'flexDirection': 'column', 'height': '100vh'})
+            ], style={'display': 'flex', 'flexDirection': 'column', 'height': '100vh'}),
+            dcc.Store(id="image-data"),
+            dcc.Store(id="label-map-data"),
+            dcc.Store(id="displayed-data"),
+            dcc.Store(id="border-data")
         ]
-        self._currently_selected = set()
         super().__init__(app, "Index", layout)
 
     def _register_callbacks(self):
         @self._app.callback(
-            Output("image-graph", "figure"),
+            Output("image-data", "data"),
             Input("upload-image", "contents"),
-            Input("n-segments-input", "value"),
-            Input("compactness-inputs", "value"),
-            Input("selection-color", "value"),
-            Input("image-graph", "clickData"),
-            Input("reset-button", "n_clicks")
+            prevent_initial_call=True
         )
-        def display_image(content, n_segments, compactness, border_color, click_data, _btn_reset):
-            def hex_to_rgb(hex_color):
-                hex_color = hex_color.lstrip('#')
-                return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-
-            if ctx.triggered_id == "reset-button" or ctx.triggered_id == "n-segments-input" or ctx.triggered_id == "compactness-inputs":
-                self._currently_selected.clear()
-
-            if not content:
-                logger.info("Image content is empty")
-                return go.Figure()
-
-            logger.info("Displaying image")
+        def load_image(content):
             _, encoded = content.split(",", 1)
             image_bytes = base64.b64decode(encoded)
             img = imread(image_bytes)
-
-            n_segment_max = img.shape[0] * img.shape[1]
-            if n_segments is None or n_segments < 1 or n_segments >= n_segment_max:
-                logger.error(f"Invalid number of segment (must be in the range [1 - {n_segment_max}])")
-                return go.Figure()
-
-            if compactness is None or compactness < 0:
-                logger.error("Invalid compactness")
-                return go.Figure()
-
-            if ctx.triggered_id == "image-graph" and click_data is not None:
-                lbl = int(click_data["points"][0]["z"])
-                if lbl in self._currently_selected:
-                    self._currently_selected.remove(lbl)
-                else:
-                    self._currently_selected.add(lbl)
-
-            displayed_img = img
             if img.ndim == 2:
-                displayed_img = img[:, :, None]
-                displayed_img = img.repeat(3, axis=2)
-            elif img.ndim == 3 and img.shape[2] == 4:
-                displayed_img = img[:, :, :3]
+                img = img[:, :, None]
+                img = img.repeat(3, axis=2)
+
+            return img.tolist()
+
+        @self._app.callback(
+            Output("label-map-data", "data"),
+            Output("border-data", "data"),
+            Input("image-data", "data"),
+            Input("n-segments-input", "value"),
+            Input("compactness-input", "value"),
+            prevent_initial_call=True
+        )
+        def compute_label_map(image_data, n_segments, compactness):
+            img = np.asarray(image_data)
+
+            N = img.shape[0] * img.shape[1]
+            if n_segments is None or n_segments < 1 or n_segments > N:
+                logger.error(f"Invalid number of segment (Got {n_segments}, expected in [1 - {N}])")
+                return None, None
+
+            if compactness is None or compactness <= 0:
+                logger.error("Compactness must be strictly positive")
+                return None, None
 
             segments = slic(img, n_segments=n_segments, compactness=compactness)
             logger.info(f"SLIC computed with {n_segments} segments (Got {segments.max()} segments)")
             dil = dilation(segments, footprint_rectangle((3, 3)))
             borders = segments != dil
-            displayed_img[borders] = hex_to_rgb(border_color)
-            for lbl in self._currently_selected:
-                displayed_img[segments == lbl] = hex_to_rgb(border_color)
 
-            h, w = img.shape[:2]
+            return segments.tolist(), borders.tolist()
+
+        @self._app.callback(
+            Output("image-graph", "figure"),
+            Input("image-data", "data"),
+            Input("label-map-data", "data"),
+            Input("displayed-data", "data"),
+            Input("selection-color", "value")
+        )
+        def display_image(image_data, label_map, displayed, selected_color):
+            def hex_to_rgb(hex_color):
+                hex_color = hex_color.lstrip('#')
+                return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+    
+            if image_data is None:
+                return go.Figure()
+
+            img = np.array(image_data)
+            displayed_img = img
+            if img.ndim == 3 and img.shape[2] == 4:
+                displayed_img = img[:, :, :3]
+            elif img.ndim != 3 or img.shape[2] != 3:
+                logger.error("Invalid image data")
+                return go.Figure()
+
+            if displayed is not None:
+                displayed_np = np.asarray(displayed)
+                displayed_img[displayed_np] = hex_to_rgb(selected_color)
+
+            
             fig = go.Figure()
             fig.add_trace(go.Image(z=displayed_img, hoverinfo="skip"))
-            fig.add_trace(go.Heatmap(z=segments, opacity=0, showscale=False, hovertemplate=None))
+            if label_map is not None:
+                label_map_np = np.asarray(label_map)
+                fig.add_trace(go.Heatmap(z=label_map_np, opacity=0, showscale=False, hovertemplate=None))
             return fig
+
+        @self._app.callback(
+            Output("displayed-data", "data"),
+            Input("image-graph", "clickData"),
+            Input("border-data", "data"),
+            State("displayed-data", "data"),
+            State("label-map-data", "data"),
+            prevent_initial_call=True
+        )
+        def select_region(click, borders, displayed, label_map):
+            if borders is None:
+                return None
+    
+            displayed_np = None
+            if click is not None:
+                displayed_np = np.asarray(displayed)
+                label_map_np = np.asarray(label_map)
+                data = click["points"][0]
+                x = int(data["x"])
+                y = int(data["y"])
+                lbl = int(data["z"])
+                if displayed_np[y, x]:
+                    displayed_np[label_map_np == lbl] = False
+                else:
+                    displayed_np[label_map_np == lbl] = True
+            else:
+                displayed_np = np.zeros_like(borders)
+            
+            displayed_np[borders] = True
+            
+            return displayed_np.tolist()
