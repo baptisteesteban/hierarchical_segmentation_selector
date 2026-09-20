@@ -5,3 +5,5 @@
 **/.git
 **/.gitignore
 **/flake.*
+**/.github
+README.md
