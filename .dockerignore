@@ -1,0 +1,7 @@
+.direnv
+.venv
+.envrc
+**/__pycache__
+**/.git
+**/.gitignore
+**/flake.*
