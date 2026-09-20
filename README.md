@@ -65,3 +65,4 @@ $ docker run --rm -p 8050:8050 baptisteesteban/hierarchical-segmentation-selecto
     - [ ] Binary Partition Tree
     - [ ] Min / Max-tree
 - [ ] Changement of mask display (using opaque mask instead of colored image)
+- [ ] Production server

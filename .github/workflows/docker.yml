@@ -1,0 +1,39 @@
+name: Build and Publish Docker image
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Log in to the Container Repository
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+    
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v6.2.0
+        with:
+          images: ghcr.io/baptisteesteban/hierarchical-segmentation-selector
+
+      - name: Build and Push image
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/baptisteesteban/hierarchical-segmentation-selector:latest
+            ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.output.labels }}
