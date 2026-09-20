@@ -1,7 +1,7 @@
 from dash import Dash, html, dcc, Input, Output, State, ctx
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from imageio.v3 import imread
+from imageio.v3 import imread, imwrite
 from skimage.segmentation import slic
 from skimage.morphology import footprint_rectangle, dilation
 import numpy as np
@@ -23,6 +23,7 @@ class IndexPage(AbstractPage):
                 dbc.Card(
                     dbc.Row([
                         dbc.Col(dcc.Upload(children=[dbc.Button("Open Image")], id="upload-image", accept="image/*")),
+                        dbc.Col(dbc.Button("Download Segmentation", id="download-segmentation-button")),
                         #dbc.Col(dbc.Button("Reset", id="reset-button")),
                         dbc.Col([dbc.Input(type="color", id="selection-color", value="#FF0000")])
                     ]),
@@ -53,7 +54,8 @@ class IndexPage(AbstractPage):
             dcc.Store(id="image-data"),
             dcc.Store(id="label-map-data"),
             dcc.Store(id="displayed-data"),
-            dcc.Store(id="border-data")
+            dcc.Store(id="border-data"),
+            dcc.Download(id="segmentation-download")
         ]
         super().__init__(app, "Index", layout)
 
@@ -165,3 +167,17 @@ class IndexPage(AbstractPage):
             displayed_np[borders] = True
             
             return displayed_np.tolist()
+
+        @self._app.callback(
+            Output("segmentation-download", "data"),
+            Input("download-segmentation-button", "n_clicks"),
+            State("displayed-data", "data"),
+            prevent_initial_call=True
+        )
+        def download_segmentation(click, displayed_data):
+            if displayed_data is None:
+                return None
+            displayed = np.asarray(displayed_data)
+            buffer = BytesIO()
+            imwrite(buffer, displayed, extension=".png")
+            return dcc.send_bytes(buffer.getvalue(), "segmentation.png")
