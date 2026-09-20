@@ -24,7 +24,6 @@ class IndexPage(AbstractPage):
                     dbc.Row([
                         dbc.Col(dcc.Upload(children=[dbc.Button("Open Image")], id="upload-image", accept="image/*")),
                         dbc.Col(dbc.Button("Download Segmentation", id="download-segmentation-button")),
-                        #dbc.Col(dbc.Button("Reset", id="reset-button")),
                         dbc.Col([dbc.Input(type="color", id="selection-color", value="#FF0000")])
                     ]),
                     body=True),
@@ -53,7 +52,7 @@ class IndexPage(AbstractPage):
             ], style={'display': 'flex', 'flexDirection': 'column', 'height': '100vh'}),
             dcc.Store(id="image-data"),
             dcc.Store(id="label-map-data"),
-            dcc.Store(id="displayed-data"),
+            dcc.Store(id="selected-regions-data"),
             dcc.Store(id="border-data"),
             dcc.Download(id="segmentation-download")
         ]
@@ -106,10 +105,11 @@ class IndexPage(AbstractPage):
             Output("image-graph", "figure"),
             Input("image-data", "data"),
             Input("label-map-data", "data"),
-            Input("displayed-data", "data"),
+            Input("selected-regions-data", "data"),
+            Input("border-data", "data"),
             Input("selection-color", "value")
         )
-        def display_image(image_data, label_map, displayed, selected_color):
+        def display_image(image_data, label_map, selected_regions, border, selected_color):
             def hex_to_rgb(hex_color):
                 hex_color = hex_color.lstrip('#')
                 return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
@@ -125,8 +125,9 @@ class IndexPage(AbstractPage):
                 logger.error("Invalid image data")
                 return go.Figure()
 
-            if displayed is not None:
-                displayed_np = np.asarray(displayed)
+            if selected_regions is not None:
+                displayed_np = np.asarray(selected_regions)
+                displayed_np = np.logical_or(displayed_np, np.asarray(border))
                 displayed_img[displayed_np] = hex_to_rgb(selected_color)
 
             
@@ -138,46 +139,44 @@ class IndexPage(AbstractPage):
             return fig
 
         @self._app.callback(
-            Output("displayed-data", "data"),
+            Output("selected-regions-data", "data"),
             Input("image-graph", "clickData"),
             Input("border-data", "data"),
-            State("displayed-data", "data"),
+            State("selected-regions-data", "data"),
             State("label-map-data", "data"),
             prevent_initial_call=True
         )
-        def select_region(click, borders, displayed, label_map):
+        def select_region(click, borders, selected_regions, label_map):
             if borders is None:
                 return None
     
-            displayed_np = None
+            selected_regions_np = None
             if ctx.triggered_id == "image-graph" and click is not None:
-                displayed_np = np.asarray(displayed)
+                selected_regions_np = np.asarray(selected_regions)
                 label_map_np = np.asarray(label_map)
                 data = click["points"][0]
                 x = int(data["x"])
                 y = int(data["y"])
                 lbl = int(data["z"])
-                if displayed_np[y, x]:
-                    displayed_np[label_map_np == lbl] = False
+                if selected_regions_np[y, x]:
+                    selected_regions_np[label_map_np == lbl] = False
                 else:
-                    displayed_np[label_map_np == lbl] = True
+                    selected_regions_np[label_map_np == lbl] = True
             else:
-                displayed_np = np.zeros_like(borders)
+                selected_regions_np = np.zeros_like(borders)
             
-            displayed_np[borders] = True
-            
-            return displayed_np.tolist()
+            return selected_regions_np.tolist()
 
         @self._app.callback(
             Output("segmentation-download", "data"),
             Input("download-segmentation-button", "n_clicks"),
-            State("displayed-data", "data"),
+            State("selected-regions-data", "data"),
             prevent_initial_call=True
         )
-        def download_segmentation(click, displayed_data):
-            if displayed_data is None:
+        def download_segmentation(click, selected_regions_data):
+            if selected_regions_data is None:
                 return None
-            displayed = np.asarray(displayed_data)
+            selected_regions = np.asarray(selected_regions_data)
             buffer = BytesIO()
-            imwrite(buffer, displayed, extension=".png")
+            imwrite(buffer, selected_regions, extension=".png")
             return dcc.send_bytes(buffer.getvalue(), "segmentation.png")
