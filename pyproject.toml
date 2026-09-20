@@ -10,5 +10,6 @@ dependencies = [
     "dash-bootstrap-components>=2.0.4",
     "imageio>=2.37.4",
     "loguru>=0.7.3",
+    "numba>=0.67.0",
     "scikit-image>=0.26.0",
 ]
