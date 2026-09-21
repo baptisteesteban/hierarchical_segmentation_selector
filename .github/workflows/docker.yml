@@ -26,12 +26,14 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6.2.0
         with:
-          images: baptisteesteban/hierarchical-segmentation-selector
+          images: ghcr.io/baptisteesteban/hierarchical-segmentation-selector
 
       - name: Build and Push image
         uses: docker/build-push-action@v7.4.0
         with:
           context: .
           push: true
-          tags: latest
-          labels: ${{ steps.meta.output.labels }}
+          tags: |
+            ghcr.io/baptisteesteban/hierarchical-segmentation-selector:latest
+            ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
