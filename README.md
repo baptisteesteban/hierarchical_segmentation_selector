@@ -65,7 +65,7 @@ $ docker run --rm -p 8050:8050 ghcr.io/baptisteesteban/hierarchical-segmentation
 - [X] Design graphical interface (version 0.1)
 - [X] SLIC Superpixel segmentation (version 0.1)
 - [X] Superpixel selector (version 0.1)
-- [ ] Compute Region Adjacency Graph
+- [X] Compute Region Adjacency Graph (version 0.1)
 - [ ] Hierarchical clustering
 - [ ] Dendrogram display
 - [ ] Choice of superpixel clustering
