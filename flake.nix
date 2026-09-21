@@ -16,7 +16,7 @@
 
           shellHook = ''
             export UV_NO_MANAGED_PYTHON=1
-	    export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]}:$LD_LIBRARY_PATH
+            export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib]}:$LD_LIBRARY_PATH
           '';
         };
       };
