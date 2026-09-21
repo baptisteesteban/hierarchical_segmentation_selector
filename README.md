@@ -49,6 +49,12 @@ $ docker build . -t baptisteesteban/hierarchical-segmentation-selector
 $ docker run --rm -p 8050:8050 baptisteesteban/hierarchical-segmentation-selector
 ```
 
+A built image is also available in the Github Container registry and may be used using the following command:
+
+```
+$ docker run --rm -p 8050:8050 ghcr.io/baptisteesteban/hierarchical-segmentation-selector:latest
+```
+
 ## TODOs
 
 - [X] Design graphical interface (version 0.1)
