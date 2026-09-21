@@ -55,7 +55,7 @@ class RAG:
                         centroid[n, 1],
                         centroid[d, 0],
                         centroid[d, 1],
-                        0
+                        self._adj_matrix[n, d]
                     ])
 
         return np.asarray(res)

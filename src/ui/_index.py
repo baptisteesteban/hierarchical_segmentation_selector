@@ -1,6 +1,7 @@
 from dash import Dash, html, dcc, Input, Output, State, ctx
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
+import plotly.express as px
 from imageio.v3 import imread, imwrite
 from skimage.segmentation import slic
 from skimage.morphology import footprint_rectangle, dilation
@@ -144,11 +145,15 @@ class IndexPage(AbstractPage):
                 lines = rag.process_rag_for_display(centroid)
 
                 logger.info("Displaying RAG")
-                y = np.column_stack((lines[:, 0], lines[:, 2], np.full(len(lines), np.nan))).ravel()
-                x = np.column_stack((lines[:, 1], lines[:, 3], np.full(len(lines), np.nan))).ravel()
-                fig.add_trace(go.Scatter(x=x, y=y, mode="lines", hoverinfo="skip"))
+                w = lines[:, 4]
+                colors = px.colors.sample_colorscale("Inferno", (w - w.min()) / (w.max() - w.min()))
+                
+                for i in range(len(lines)):
+                    x_line = [lines[i, 1], lines[i, 3]]
+                    y_line = [lines[i, 0], lines[i, 2]]
+                    fig.add_trace(go.Scatter(x=x_line, y=y_line, mode="lines", hoverinfo="skip", line=dict(color=colors[i])))
 
-                fig.add_trace(go.Scatter(x=centroid[1:, 1], y=centroid[1:, 0], mode='markers', hoverinfo="skip"))
+                fig.add_trace(go.Scatter(x=centroid[1:, 1], y=centroid[1:, 0], mode='markers', hoverinfo="skip", marker={"color": selected_color}))
             return fig
 
         @self._app.callback(
