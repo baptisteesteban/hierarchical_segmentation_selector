@@ -12,6 +12,7 @@ import base64
 from io import BytesIO
 
 from ._page import AbstractPage
+from src.compute import compute_centroid
 
 
 class IndexPage(AbstractPage):
@@ -136,6 +137,8 @@ class IndexPage(AbstractPage):
             if label_map is not None:
                 label_map_np = np.asarray(label_map)
                 fig.add_trace(go.Heatmap(z=label_map_np, opacity=0, showscale=False, hovertemplate=None))
+                centroid = compute_centroid(label_map_np)
+                fig.add_trace(go.Scatter(x=centroid[1:, 1], y=centroid[1:, 0], mode='markers'))
             return fig
 
         @self._app.callback(
