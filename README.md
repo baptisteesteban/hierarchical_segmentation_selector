@@ -39,6 +39,11 @@ $ direnv allow
 Then, you can develop or run the application as described in the previous
 section.
 
+It has to be noted that the Nix development shell is handled by a Nix flake
+using [flake-parts](https://flake.parts/) but it only handles a `x86_64-linux`
+system. If you wish to add a new system, please make a pull request to add the
+system in the `flake.nix` file.
+
 ### Using Docker
 
 You can build and run a Docker image from this repository. At the root of the
@@ -72,3 +77,5 @@ $ docker run --rm -p 8050:8050 ghcr.io/baptisteesteban/hierarchical-segmentation
     - [ ] Min / Max-tree
 - [ ] Changement of mask display (using opaque mask instead of colored image)
 - [ ] Production server
+- [ ] Nix flake packaging
+- [ ] uv application packaging
