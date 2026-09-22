@@ -51,6 +51,7 @@ class IndexPage(AbstractPage):
             dcc.Store(id="label-map-data"),
             dcc.Store(id="selected-regions-data"),
             dcc.Store(id="border-data"),
+            dcc.Store(id="hierarchy-parent-data")
         ]
         super().__init__(app, "Index", layout, stores)
 
@@ -60,7 +61,8 @@ class IndexPage(AbstractPage):
             compute_label_map,
             display_image,
             select_region,
-            download_segmentation
+            download_segmentation,
+            compute_clustering
         )
 
         @self._app.callback(
@@ -112,3 +114,12 @@ class IndexPage(AbstractPage):
         )
         def download_segmentation_callback(click, selected_regions_data):
             return download_segmentation(click, selected_regions_data)
+
+        @self._app.callback(
+            Output("hierarchy-parent-data", "data"),
+            Input("label-map-data", "data"),
+            State("image-data", "data"),
+            prevent_initial_call=True
+        )
+        def compute_clustering_callback(label_map, img):
+            return compute_clustering(label_map, img)

@@ -16,7 +16,7 @@ def compute_label_map(image_data: list, n_segments: int, compactness: float) -> 
         logger.error("Compactness must be strictly positive")
         return None, None
 
-    segments = slic(img, n_segments=n_segments, compactness=compactness)
+    segments = slic(img, n_segments=n_segments, compactness=compactness, start_label=0)
     logger.info(f"SLIC computed with {n_segments} segments (Got {segments.max()} segments)")
     dil = dilation(segments, footprint_rectangle((3, 3)))
     borders = segments != dil
