@@ -1,4 +1,6 @@
 site_name: Hierarchical Segmentation Selector
+theme: material
+site_author: Baptiste Esteban
 docs_dir: ./doc
 nav:
   - Home: index.md
