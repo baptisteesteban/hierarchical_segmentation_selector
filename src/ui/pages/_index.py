@@ -39,7 +39,7 @@ class IndexPage(AbstractPage):
                 ]),
                 dbc.Row([
                     dbc.Col(dcc.Graph(id="image-graph", style={'width': '100%', 'height': 'calc(100vh - 400px)'})),
-                    dbc.Col(html.H3("TODO ! (Dendrogram)"))
+                    dbc.Col(dcc.Graph(id="dendrogram-graph", style={'width': '100%', 'height': 'calc(100vh - 400px)'}))
                 ]),
                 
             ], style={'display': 'flex', 'flexDirection': 'column', 'height': '100vh'}),
@@ -62,7 +62,8 @@ class IndexPage(AbstractPage):
             display_image,
             select_region,
             download_segmentation,
-            compute_clustering
+            compute_clustering,
+            plot_dendrogram
         )
 
         @self._app.callback(
@@ -123,3 +124,11 @@ class IndexPage(AbstractPage):
         )
         def compute_clustering_callback(label_map, img):
             return compute_clustering(label_map, img)
+
+        @self._app.callback(
+            Output("dendrogram-graph", "figure"),
+            Input("hierarchy-parent-data", "data"),
+            prevent_initial_call=True
+        )
+        def plot_dendrogram_callback(parent):
+            return plot_dendrogram(parent)
