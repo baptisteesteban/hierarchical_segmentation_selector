@@ -50,4 +50,5 @@ def display_image(image_data: list, label_map: list, selected_regions: list, bor
             fig.add_trace(go.Scatter(x=x_line, y=y_line, mode="lines", hoverinfo="skip", line=dict(color=colors[i])))
 
         fig.add_trace(go.Scatter(x=centroid[1:, 1], y=centroid[1:, 0], mode='markers', hoverinfo="skip", marker={"color": selected_color}))
+    fig.update_layout(showlegend=False)
     return fig
