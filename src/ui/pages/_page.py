@@ -1,14 +1,15 @@
-from dash import Dash
+from dash import Dash, dcc
 
 from loguru import logger
 
 from abc import ABC, abstractmethod
 
 class AbstractPage(ABC):
-    def __init__(self, app: Dash, name: str, layout: list):
+    def __init__(self, app: Dash, name: str, layout: list, stores: list[dcc.Store] = []):
         self._app = app
         self._name = name
         self._layout = layout
+        self._stores = stores
         self._callbacks_registered = False
 
     @abstractmethod
@@ -21,4 +22,4 @@ class AbstractPage(ABC):
             self._callbacks_registered = True
 
         logger.info(f"Displaying {self._name} page")
-        self._app.layout = self._layout
+        self._app.layout = self._layout + self._stores

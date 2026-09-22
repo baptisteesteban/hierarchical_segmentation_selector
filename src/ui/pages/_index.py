@@ -43,13 +43,16 @@ class IndexPage(AbstractPage):
                 ]),
                 
             ], style={'display': 'flex', 'flexDirection': 'column', 'height': '100vh'}),
+            dcc.Download(id="segmentation-download")
+        ]
+
+        stores = [
             dcc.Store(id="image-data"),
             dcc.Store(id="label-map-data"),
             dcc.Store(id="selected-regions-data"),
             dcc.Store(id="border-data"),
-            dcc.Download(id="segmentation-download")
         ]
-        super().__init__(app, "Index", layout)
+        super().__init__(app, "Index", layout, stores)
 
     def _register_callbacks(self):
         from src.ui.callbacks.index import (
