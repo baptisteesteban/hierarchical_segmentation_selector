@@ -51,7 +51,8 @@ class IndexPage(AbstractPage):
             dcc.Store(id="label-map-data"),
             dcc.Store(id="selected-regions-data"),
             dcc.Store(id="border-data"),
-            dcc.Store(id="hierarchy-parent-data")
+            dcc.Store(id="hierarchy-parent-data"),
+            dcc.Store(id="hierarchy-altitude-data")
         ]
         super().__init__(app, "Index", layout, stores)
 
@@ -118,6 +119,7 @@ class IndexPage(AbstractPage):
 
         @self._app.callback(
             Output("hierarchy-parent-data", "data"),
+            Output("hierarchy-altitude-data", "data"),
             Input("label-map-data", "data"),
             State("image-data", "data"),
             prevent_initial_call=True
