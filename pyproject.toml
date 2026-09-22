@@ -1,5 +1,5 @@
 [project]
-name = "hierarchical_segmentation_frontend"
+name = "hierarchical_segmentation_selector"
 version = "0.1.0"
 authors = [
     {name = "Baptiste Esteban", email = "baptiste.esteban@epita.fr"}
@@ -12,4 +12,11 @@ dependencies = [
     "loguru>=0.7.3",
     "numba>=0.67.0",
     "scikit-image>=0.26.0",
+]
+
+[project.optional-dependencies]
+doc = [
+    "mkdocs>=1.6.1",
+    "mkdocs-mermaid2-plugin>=1.2.3",
+    "mkdocs-material>=9.7.7",
 ]

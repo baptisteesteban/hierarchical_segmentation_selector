@@ -54,11 +54,23 @@ $ docker build . -t baptisteesteban/hierarchical-segmentation-selector
 $ docker run --rm -p 8050:8050 baptisteesteban/hierarchical-segmentation-selector
 ```
 
-A built image is also available in the Github Container registry and may be used using the following command:
+A built image is also available in the Github Container registry and may be used
+using the following command:
 
 ```
 $ docker run --rm -p 8050:8050 ghcr.io/baptisteesteban/hierarchical-segmentation-selector:latest
 ```
+
+## How to build the documentation
+
+In order to build the documentation, use the following command:
+
+```
+$ uv run --extra doc mkdocs build
+```
+
+It will create a directory named `site`, at the root of which the file
+`index.html` is the entry point and may be opened by your favorite web browser.
 
 ## TODOs
 
