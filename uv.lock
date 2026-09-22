@@ -288,7 +288,6 @@ dependencies = [
     { name = "dash-bootstrap-components" },
     { name = "imageio" },
     { name = "loguru" },
-    { name = "mkdocs-material" },
     { name = "numba" },
     { name = "scikit-image" },
 ]
@@ -296,6 +295,7 @@ dependencies = [
 [package.optional-dependencies]
 doc = [
     { name = "mkdocs" },
+    { name = "mkdocs-material" },
     { name = "mkdocs-mermaid2-plugin" },
 ]
 
@@ -306,7 +306,7 @@ requires-dist = [
     { name = "imageio", specifier = ">=2.37.4" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "mkdocs", marker = "extra == 'doc'", specifier = ">=1.6.1" },
-    { name = "mkdocs-material", specifier = ">=9.7.7" },
+    { name = "mkdocs-material", marker = "extra == 'doc'", specifier = ">=9.7.7" },
     { name = "mkdocs-mermaid2-plugin", marker = "extra == 'doc'", specifier = ">=1.2.3" },
     { name = "numba", specifier = ">=0.67.0" },
     { name = "scikit-image", specifier = ">=0.26.0" },
