@@ -5,3 +5,13 @@ from ._select_region import select_region
 from ._download_segmentation import download_segmentation
 from ._compute_clustering import compute_clustering
 from ._plot_dendrogram import plot_dendrogram
+
+__all__ = [
+    "load_image",
+    "compute_label_map",
+    "display_image",
+    "select_region",
+    "download_segmentation",
+    "compute_clustering",
+    "plot_dendrogram",
+]

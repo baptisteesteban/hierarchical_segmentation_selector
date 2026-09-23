@@ -1,12 +1,8 @@
 import numpy as np
 
 import plotly.graph_objects as go
-import plotly.express as px
-from typing import Any
 
 from loguru import logger
-
-from src.compute import compute_centroid_and_mean, RAG
 
 def display_image(image_data: list[list[list[int]]] | None, label_map: list[list[int]] | None, selected_regions: list[list[bool]] | None, border: list[list[bool]], selected_color: str) -> go.Figure:
     def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:

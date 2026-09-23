@@ -2,10 +2,7 @@ from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
 from typing import Any
 
-from io import BytesIO
-
 from ._page import AbstractPage
-from src.compute import compute_centroid_and_mean, RAG
 
 
 class IndexPage(AbstractPage):

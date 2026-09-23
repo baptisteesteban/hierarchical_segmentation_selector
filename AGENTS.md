@@ -9,3 +9,7 @@
 * The project must use the latest python static typing features.
 * The project uses `uv` for the package and project management.
 * To run the application, use `uv run app.py`.
+
+## Using tools
+
+* When using `ruff`, use `uv` for check on non-NixOS systems, else use the one available in the devShell.

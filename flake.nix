@@ -12,7 +12,7 @@
         formatter = pkgs.alejandra;
 
         devShells.default = pkgs.mkShell {
-          packages = with pkgs; [python3 uv];
+          packages = with pkgs; [python3 uv ruff];
 
           shellHook = ''
             export UV_NO_MANAGED_PYTHON=1

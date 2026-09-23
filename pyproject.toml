@@ -20,3 +20,8 @@ doc = [
     "mkdocs-mermaid2-plugin>=1.2.3",
     "mkdocs-material>=9.7.7",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.8",
+]

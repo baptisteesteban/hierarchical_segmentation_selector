@@ -9,15 +9,15 @@ def _build_rag(label_map: np.ndarray, region_model: np.ndarray) -> np.ndarray:
     N = label_map.max() + 1
     res = np.full((N, N), -1, dtype=np.float32)
 
-    for l in range(label_map.shape[0]):
+    for i in range(label_map.shape[0]):
         for c in range(label_map.shape[1]):
             for dl, dc in zip(DL, DC):
-                nl = l + dl
+                ni = i + dl
                 nc = c + dc
-                if nl < 0 or nc < 0 or nl >= label_map.shape[0] or nc >= label_map.shape[1]:
+                if ni < 0 or nc < 0 or ni >= label_map.shape[0] or nc >= label_map.shape[1]:
                     continue
-                a = label_map[l, c]
-                b = label_map[nl, nc]
+                a = label_map[i, c]
+                b = label_map[ni, nc]
                 if a != b:
                     res[a, b] = res[b, a] = np.linalg.norm(region_model[a] - region_model[b])
 
