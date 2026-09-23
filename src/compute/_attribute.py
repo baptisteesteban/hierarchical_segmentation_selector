@@ -17,7 +17,7 @@ def _compute_attributes(label_map: np.ndarray, img: np.ndarray) -> tuple[np.ndar
             lbl = label_map[l, c]
             sum_p[lbl, 0] += l
             sum_p[lbl, 1] += c
-            sum_v += img[l, c]
+            sum_v[lbl] += img[l, c]
             area[lbl] += 1
 
     return sum_p, sum_v, area

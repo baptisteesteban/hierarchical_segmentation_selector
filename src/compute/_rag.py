@@ -32,11 +32,11 @@ class RAG:
     def num_nodes(self) -> int:
         return self._adj_matrix.shape[0]
 
-    def edge_weight(a: int, b: int):
+    def edge_weight(self, a: int, b: int):
         assert a >= 0 and b >= 0 and a < self.num_nodes and b < self.num_nodes
         return self._adj_matrix[a, b]
 
-    def node_weight(n: int):
+    def node_weight(self, n: int):
         return self._region_model[n]
 
     @staticmethod

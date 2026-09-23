@@ -81,7 +81,7 @@ def _canonize(parent: list, altitude: list, rag_num_nodes: int) -> tuple[list, l
     
     return qct_parent, qct_altitude
 
-def hierarhical_clustering(rag: RAG) -> tuple[list, list]:
+def hierarchical_clustering(rag: RAG) -> tuple[list, list]:
     e = _edges_from_rag(rag._adj_matrix)
     e = sorted(e, key=lambda v: v[2])
 
