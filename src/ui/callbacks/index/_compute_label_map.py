@@ -5,6 +5,9 @@ from skimage.morphology import dilation, footprint_rectangle
 from loguru import logger
 
 def compute_label_map(image_data: list, n_segments: int, compactness: float) -> tuple[list, list]:
+    if image_data is None:
+        return None, None
+        
     img = np.asarray(image_data)
 
     N = img.shape[0] * img.shape[1]
@@ -16,7 +19,7 @@ def compute_label_map(image_data: list, n_segments: int, compactness: float) -> 
         logger.error("Compactness must be strictly positive")
         return None, None
 
-    segments = slic(img, n_segments=n_segments, compactness=compactness)
+    segments = slic(img, n_segments=n_segments, compactness=compactness, start_label=0)
     logger.info(f"SLIC computed with {n_segments} segments (Got {segments.max()} segments)")
     dil = dilation(segments, footprint_rectangle((3, 3)))
     borders = segments != dil
