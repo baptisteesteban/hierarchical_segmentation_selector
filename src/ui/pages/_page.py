@@ -13,9 +13,9 @@ class AbstractPage(ABC):
         self._callbacks_registered = False
 
     @abstractmethod
-    def _register_callbacks(self): ...
+    def _register_callbacks(self) -> None: ...
 
-    def display(self):
+    def display(self) -> None:
         if not self._callbacks_registered:
             logger.info(f"Registering callbacks for {self._name} page")
             self._register_callbacks()

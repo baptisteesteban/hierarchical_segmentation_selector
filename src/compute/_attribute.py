@@ -2,10 +2,10 @@ import numpy as np
 from numba import njit
 
 #@njit
-def _compute_attributes(label_map: np.ndarray, img: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _compute_attributes(label_map: np.ndarray, img: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     N = label_map.max() + 1
     sum_p = np.zeros((N, 2), dtype=np.uint32)
-    sum_v = None
+    sum_v: np.ndarray | None = None
     if img.ndim == 2:
         sum_v = np.zeros((N,), dtype=np.uint32)
     else:

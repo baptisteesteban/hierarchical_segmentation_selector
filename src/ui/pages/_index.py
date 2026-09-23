@@ -1,5 +1,6 @@
 from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
+from typing import Any
 
 from io import BytesIO
 
@@ -56,7 +57,7 @@ class IndexPage(AbstractPage):
         ]
         super().__init__(app, "Index", layout, stores)
 
-    def _register_callbacks(self):
+    def _register_callbacks(self) -> None:
         from src.ui.callbacks.index import (
             load_image,
             compute_label_map,
@@ -72,7 +73,7 @@ class IndexPage(AbstractPage):
             Input("upload-image", "contents"),
             prevent_initial_call=True
         )
-        def load_image_callback(contents):
+        def load_image_callback(contents: str) -> list[list[list[int]]]:
             return load_image(contents)
 
         @self._app.callback(
@@ -83,7 +84,7 @@ class IndexPage(AbstractPage):
             Input("compactness-input", "value"),
             prevent_initial_call=True
         )
-        def compute_label_map_callback(image_data, n_segments, compactness):
+        def compute_label_map_callback(image_data: list[list[list[int]]] | None, n_segments: int, compactness: float) -> tuple[list[list[int]] | None, list[list[bool]] | None]:
             return compute_label_map(image_data, n_segments, compactness)
 
         @self._app.callback(
@@ -94,7 +95,7 @@ class IndexPage(AbstractPage):
             Input("border-data", "data"),
             Input("selection-color", "value")
         )
-        def display_image_callback(image_data, label_map, selected_regions, border, selected_color):
+        def display_image_callback(image_data: list[list[list[int]]] | None, label_map: list[list[int]] | None, selected_regions: list[list[bool]] | None, border: list[list[bool]], selected_color: str) -> Any:
             return display_image(image_data, label_map, selected_regions, border, selected_color)
 
         @self._app.callback(
@@ -105,7 +106,7 @@ class IndexPage(AbstractPage):
             State("label-map-data", "data"),
             prevent_initial_call=True
         )
-        def select_region_callback(click, borders, selected_regions, label_map):
+        def select_region_callback(click: dict[str, Any] | None, borders: list[list[bool]], selected_regions: list[list[bool]] | None, label_map: list[list[int]]) -> list[list[bool]] | None:
             return select_region(click, borders, selected_regions, label_map)
 
         @self._app.callback(
@@ -114,7 +115,7 @@ class IndexPage(AbstractPage):
             State("selected-regions-data", "data"),
             prevent_initial_call=True
         )
-        def download_segmentation_callback(click, selected_regions_data):
+        def download_segmentation_callback(click: int, selected_regions_data: list[list[bool]] | None) -> dict[str, Any] | None:
             return download_segmentation(click, selected_regions_data)
 
         @self._app.callback(
@@ -124,7 +125,7 @@ class IndexPage(AbstractPage):
             State("image-data", "data"),
             prevent_initial_call=True
         )
-        def compute_clustering_callback(label_map, img):
+        def compute_clustering_callback(label_map: list[list[int]] | None, img: list[list[list[int]]] | None) -> tuple[list[int] | None, list[float] | None]:
             return compute_clustering(label_map, img)
 
         @self._app.callback(
@@ -133,5 +134,5 @@ class IndexPage(AbstractPage):
             Input("hierarchy-altitude-data", "data"),
             prevent_initial_call=True
         )
-        def plot_dendrogram_callback(parent, altitude):
+        def plot_dendrogram_callback(parent: list[int] | None, altitude: list[Any] | None) -> Any:
             return plot_dendrogram(parent, altitude)

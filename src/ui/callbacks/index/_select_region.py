@@ -1,8 +1,9 @@
 import numpy as np
 
 from dash import ctx
+from typing import Any
 
-def select_region(click: dict, borders: list, selected_regions: list, label_map: list) -> list:
+def select_region(click: dict[str, Any] | None, borders: list[list[bool]], selected_regions: list[list[bool]] | None, label_map: list[list[int]]) -> list[list[bool]] | None:
     if borders is None:
         return None
     

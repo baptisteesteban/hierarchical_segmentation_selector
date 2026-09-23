@@ -20,7 +20,7 @@ def _find_root(parent: np.ndarray, n: int) -> int:
     return r
 
 @njit
-def _edges_from_rag(adj_mat: np.ndarray) -> list:
+def _edges_from_rag(adj_mat: np.ndarray) -> list[tuple[int, int, float]]:
     edges = []
 
     for n in range(adj_mat.shape[0]):
@@ -31,7 +31,7 @@ def _edges_from_rag(adj_mat: np.ndarray) -> list:
     return edges
 
 @njit
-def _kruskal(sorted_edges: list, rag_num_nodes: int) -> tuple[list, list]:
+def _kruskal(sorted_edges: list[tuple[int, int, float]], rag_num_nodes: int) -> tuple[list[int], list[float]]:
     parent = [-1 for _ in range(rag_num_nodes)]
     zpar = [-1 for _ in range(rag_num_nodes)]
     alt = [0 for _ in range(rag_num_nodes)]
@@ -50,7 +50,7 @@ def _kruskal(sorted_edges: list, rag_num_nodes: int) -> tuple[list, list]:
     return parent, alt
 
 @njit
-def _canonize(parent: list, altitude: list, rag_num_nodes: int) -> tuple[list, list]:
+def _canonize(parent: list[int], altitude: list[float], rag_num_nodes: int) -> tuple[list[int], list[float]]:
     qct_parent = parent.copy()
     qct_altitude = altitude.copy()
     
@@ -81,7 +81,7 @@ def _canonize(parent: list, altitude: list, rag_num_nodes: int) -> tuple[list, l
     
     return qct_parent, qct_altitude
 
-def hierarchical_clustering(rag: RAG) -> tuple[list, list]:
+def hierarchical_clustering(rag: RAG) -> tuple[list[int], list[float]]:
     e = _edges_from_rag(rag._adj_matrix)
     e = sorted(e, key=lambda v: v[2])
 
