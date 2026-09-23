@@ -5,6 +5,9 @@ from skimage.morphology import dilation, footprint_rectangle
 from loguru import logger
 
 def compute_label_map(image_data: list, n_segments: int, compactness: float) -> tuple[list, list]:
+    if image_data is None:
+        return None, None
+        
     img = np.asarray(image_data)
 
     N = img.shape[0] * img.shape[1]

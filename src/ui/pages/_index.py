@@ -130,7 +130,8 @@ class IndexPage(AbstractPage):
         @self._app.callback(
             Output("dendrogram-graph", "figure"),
             Input("hierarchy-parent-data", "data"),
+            Input("hierarchy-altitude-data", "data"),
             prevent_initial_call=True
         )
-        def plot_dendrogram_callback(parent):
-            return plot_dendrogram(parent)
+        def plot_dendrogram_callback(parent, altitude):
+            return plot_dendrogram(parent, altitude)

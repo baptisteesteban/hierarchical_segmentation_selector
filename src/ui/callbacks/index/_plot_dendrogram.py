@@ -2,142 +2,124 @@ import plotly.graph_objects as go
 
 from loguru import logger
 
+from typing import Any
 
-def plot_dendrogram(parents):
-    """
-    Display the binary partition clustering hierarchy as a tree.
-    
-    Args:
-        parents: List where parents[i] is the parent node index of node i.
-                 Leaf nodes are indices 0 to n-1, internal nodes start from n.
-                 Root node has parent value -1.
-    
-    Returns:
-        A Plotly figure object displaying the tree hierarchy.
-    """
-    if not parents or len(parents) == 0:
-        fig = go.Figure()
-        fig.add_annotation(text="No hierarchy data available")
-        return fig
-    
-    parents = list(parents)
-    n_leaves = (len(parents) + 1) // 2
-    
-    logger.debug(f"Tree: {len(parents)} total nodes, {n_leaves} leaves")
-    
-    # Build children map
-    children_map = {}
-    for i in range(len(parents)):
-        parent_idx = parents[i]
-        if parent_idx >= 0 and parent_idx < len(parents):
-            if parent_idx not in children_map:
-                children_map[parent_idx] = []
-            children_map[parent_idx].append(i)
-    
-    # Find root
-    root = None
-    for i in range(n_leaves, len(parents)):
-        if parents[i] == -1:
-            root = i
-            break
-    if root is None:
-        root = len(parents) - 1
-    
-    # Assign positions to nodes using tree layout
-    node_x = {}
-    node_y = {}
-    
-    def assign_positions(node, depth, left, right):
-        """Assign x, y coordinates to node"""
-        x = (left + right) / 2
-        y = -depth
-        node_x[node] = x
-        node_y[node] = y
-        
-        if node in children_map:
-            children = sorted(children_map[node])
-            child_width = (right - left) / len(children)
-            for i, child in enumerate(children):
-                child_left = left + i * child_width
-                child_right = child_left + child_width
-                assign_positions(child, depth + 1, child_left, child_right)
-    
-    assign_positions(root, 0, 0, 100)
-    
-    # Prepare edges and nodes
-    edge_x = []
-    edge_y = []
-    
-    for node in range(len(parents)):
-        parent_idx = parents[node]
-        if parent_idx >= 0 and parent_idx in node_x:
-            edge_x.append(node_x[parent_idx])
-            edge_x.append(node_x[node])
-            edge_x.append(None)
-            edge_y.append(node_y[parent_idx])
-            edge_y.append(node_y[node])
-            edge_y.append(None)
-    
-    # Create figure
+
+def plot_dendrogram(parents: list[int] | None, altitude: list[Any] | None) -> go.Figure:
+    if parents is None or altitude is None:
+        return go.Figure()
+
     fig = go.Figure()
     
-    # Add edges
+    # Build node positions using a recursive layout algorithm
+    node_positions = {}  # Maps node index to (x, y) coordinates
+    
+    def get_leaves(node: int) -> list[int]:
+        """Get all leaf nodes (indices < len(parents)) under a given node."""
+        if node < len([p for p in parents if p != -1]):
+            # This is a leaf node
+            return [node]
+        
+        leaves = []
+        for i, p in enumerate(parents):
+            if p == node:
+                leaves.extend(get_leaves(i))
+        return leaves
+    
+    def layout_node(node: int, min_x: float, max_x: float) -> tuple[float, float]:
+        """
+        Recursively layout nodes and return their position.
+        Returns (x, y) where y is the altitude.
+        """
+        if node in node_positions:
+            return node_positions[node]
+        
+        # Find children of this node
+        children = [i for i, p in enumerate(parents) if p == node]
+        
+        if not children:
+            # Leaf node - place at x position, y = 0
+            x = (min_x + max_x) / 2
+            y = 0
+            node_positions[node] = (x, y)
+            return (x, y)
+        
+        # Non-leaf node - position children and connect them
+        child_positions = []
+        segment_size = (max_x - min_x) / len(children)
+        
+        for i, child in enumerate(children):
+            child_min = min_x + i * segment_size
+            child_max = min_x + (i + 1) * segment_size
+            child_x, child_y = layout_node(child, child_min, child_max)
+            child_positions.append((child_x, child_y))
+        
+        # Position this node at the center of its children, at its altitude
+        x = (min_x + max_x) / 2
+        y = altitude[node] if node < len(altitude) else 0
+        node_positions[node] = (x, y)
+        
+        return (x, y)
+    
+    # Find the root node(s)
+    roots = [i for i, p in enumerate(parents) if p == -1]
+    
+    if not roots:
+        logger.warning("No root node found in dendrogram")
+        return fig
+    
+    # Layout from root
+    num_leaves = sum(1 for i in range(len(parents)) if i < len(parents) and all(parents[j] != i for j in range(len(parents))))
+    if num_leaves == 0:
+        num_leaves = len(parents)
+    
+    for root in roots:
+        layout_node(root, 0, num_leaves)
+    
+    # Draw connections (lines) for all parent-child relationships
+    for node_idx in range(len(parents)):
+        if parents[node_idx] != -1:
+            parent_idx = parents[node_idx]
+            if node_idx in node_positions and parent_idx in node_positions:
+                child_x, child_y = node_positions[node_idx]
+                parent_x, parent_y = node_positions[parent_idx]
+                
+                # Draw vertical line from child to parent
+                fig.add_trace(go.Scatter(
+                    x=[child_x, child_x, parent_x],
+                    y=[child_y, parent_y, parent_y],
+                    mode='lines',
+                    line=dict(color='darkblue', width=1),
+                    hoverinfo='none',
+                    showlegend=False
+                ))
+    
+    # Add leaf nodes as points
+    leaf_nodes = [i for i in range(len(parents)) if all(parents[j] != i for j in range(len(parents)))]
+    leaf_x = [node_positions[node][0] for node in leaf_nodes if node in node_positions]
+    leaf_y = [node_positions[node][1] for node in leaf_nodes if node in node_positions]
+    
     fig.add_trace(go.Scatter(
-        x=edge_x, y=edge_y,
-        mode='lines',
-        line=dict(width=1.5, color='#1f77b4'),
-        hoverinfo='none',
+        x=leaf_x,
+        y=leaf_y,
+        mode='markers',
+        marker=dict(size=6, color='darkblue'),
+        text=[f'Region {i}' for i in leaf_nodes],
+        hoverinfo='text',
         showlegend=False
     ))
-    
-    # Add nodes
-    node_list = list(node_x.keys())
-    node_x_list = [node_x[n] for n in node_list]
-    node_y_list = [node_y[n] for n in node_list]
-    
-    leaf_mask = [n < n_leaves for n in node_list]
-    
-    # Leaf nodes
-    leaf_indices = [i for i, is_leaf in enumerate(leaf_mask) if is_leaf]
-    fig.add_trace(go.Scatter(
-        x=[node_x_list[i] for i in leaf_indices],
-        y=[node_y_list[i] for i in leaf_indices],
-        mode='markers+text',
-        marker=dict(size=10, color='#ff7f0e', line=dict(width=2, color='#d46700')),
-        text=[f"S{node_list[i]}" for i in leaf_indices],
-        textposition='middle center',
-        textfont=dict(size=9, color='white', family='monospace'),
-        hovertemplate='Segment %{text}<extra></extra>',
-        showlegend=False
-    ))
-    
-    # Internal nodes
-    internal_indices = [i for i, is_leaf in enumerate(leaf_mask) if not is_leaf]
-    if internal_indices:
-        fig.add_trace(go.Scatter(
-            x=[node_x_list[i] for i in internal_indices],
-            y=[node_y_list[i] for i in internal_indices],
-            mode='markers+text',
-            marker=dict(size=8, color='#2ca02c', line=dict(width=1.5, color='#1d6b1d')),
-            text=[f"N{node_list[i]}" for i in internal_indices],
-            textposition='middle center',
-            textfont=dict(size=8, color='white', family='monospace'),
-            hovertemplate='Node %{text}<extra></extra>',
-            showlegend=False
-        ))
     
     # Update layout
     fig.update_layout(
-        title='Clustering Hierarchy Tree',
-        showlegend=False,
+        title="Hierarchical Clustering Dendrogram",
+        xaxis_title="Regions",
+        yaxis_title="Altitude (Merge Distance)",
         hovermode='closest',
-        plot_bgcolor='white',
-        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
         height=600,
-        margin=dict(b=20, l=5, r=5, t=40),
-        xaxis_title='',
-        yaxis_title=''
+        showlegend=False
     )
+    
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(showgrid=True)
     
     return fig

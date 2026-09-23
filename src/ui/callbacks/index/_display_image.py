@@ -32,23 +32,5 @@ def display_image(image_data: list, label_map: list, selected_regions: list, bor
     if label_map is not None:
         label_map_np = np.asarray(label_map)
         fig.add_trace(go.Heatmap(z=label_map_np, opacity=0, showscale=False, hovertemplate=None))
-
-        logger.info("Computing information for RAG")
-        centroid, mean = compute_centroid_and_mean(label_map_np, img)
-        logger.info("Building RAG")
-        rag = RAG.build(label_map_np, mean)
-        logger.info("Computing information for RAG")
-        lines = rag.process_rag_for_display(centroid)
-
-        logger.info("Displaying RAG")
-        w = lines[:, 4]
-        colors = px.colors.sample_colorscale("Inferno", (w - w.min()) / (w.max() - w.min()))
-                
-        for i in range(len(lines)):
-            x_line = [lines[i, 1], lines[i, 3]]
-            y_line = [lines[i, 0], lines[i, 2]]
-            fig.add_trace(go.Scatter(x=x_line, y=y_line, mode="lines", hoverinfo="skip", line=dict(color=colors[i])))
-
-        fig.add_trace(go.Scatter(x=centroid[1:, 1], y=centroid[1:, 0], mode='markers', hoverinfo="skip", marker={"color": selected_color}))
     fig.update_layout(showlegend=False)
     return fig

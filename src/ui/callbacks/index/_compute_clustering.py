@@ -12,5 +12,4 @@ def compute_clustering(label_map_data, img_data):
     centroid, mean = compute_centroid_and_mean(label_map, img)
     rag = RAG.build(label_map, mean)
     parent, altitude = hierarhical_clustering(rag)
-    logger.info(f"Hierarchy cluster: {parent}")
     return parent, altitude
