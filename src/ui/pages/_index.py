@@ -1,6 +1,7 @@
-from dash import Dash, html, dcc, Input, Output, State
-import dash_bootstrap_components as dbc
 from typing import Any
+
+import dash_bootstrap_components as dbc
+from dash import Dash, Input, Output, State, dcc, html
 
 from ._page import AbstractPage
 
@@ -116,13 +117,13 @@ class IndexPage(AbstractPage):
 
     def _register_callbacks(self) -> None:
         from src.ui.callbacks.index import (
-            load_image,
+            compute_clustering,
             compute_label_map,
             display_image,
-            select_region,
             download_segmentation,
-            compute_clustering,
+            load_image,
             plot_dendrogram,
+            select_region,
         )
 
         @self._app.callback(

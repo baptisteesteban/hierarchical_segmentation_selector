@@ -1,8 +1,8 @@
+from abc import ABC, abstractmethod
+
 from dash import Dash, dcc
 
 from loguru import logger
-
-from abc import ABC, abstractmethod
 
 
 class AbstractPage(ABC):

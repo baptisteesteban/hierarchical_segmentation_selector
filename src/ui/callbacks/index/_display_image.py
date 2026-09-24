@@ -1,8 +1,8 @@
 import numpy as np
 
-import plotly.graph_objects as go
-
 from loguru import logger
+
+import plotly.graph_objects as go
 
 
 def display_image(

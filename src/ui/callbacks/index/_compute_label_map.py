@@ -1,8 +1,8 @@
 import numpy as np
-from skimage.segmentation import slic
-from skimage.morphology import dilation, footprint_rectangle
 
 from loguru import logger
+from skimage.morphology import dilation, footprint_rectangle
+from skimage.segmentation import slic
 
 
 def compute_label_map(

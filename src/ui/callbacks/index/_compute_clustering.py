@@ -10,7 +10,7 @@ def compute_clustering(
         return None, None
     label_map = np.asarray(label_map_data)
     img = np.asarray(img_data, dtype=np.uint8)
-    centroid, mean = compute_centroid_and_mean(label_map, img)
+    _, mean = compute_centroid_and_mean(label_map, img)
     rag = RAG.build(label_map, mean)
     parent, altitude = hierarchical_clustering(rag)
     return parent, altitude

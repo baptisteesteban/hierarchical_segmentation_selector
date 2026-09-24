@@ -1,10 +1,9 @@
-import numpy as np
-from imageio.v3 import imwrite
-
-from dash import dcc
+from io import BytesIO
 from typing import Any
 
-from io import BytesIO
+import numpy as np
+from dash import dcc
+from imageio.v3 import imwrite
 
 
 def download_segmentation(

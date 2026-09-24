@@ -1,8 +1,8 @@
+from typing import Any
+
 import plotly.graph_objects as go
 
 from loguru import logger
-
-from typing import Any
 
 
 def plot_dendrogram(parents: list[int] | None, altitude: list[Any] | None) -> go.Figure:
@@ -94,7 +94,7 @@ def plot_dendrogram(parents: list[int] | None, altitude: list[Any] | None) -> go
                         x=[child_x, child_x, parent_x],
                         y=[child_y, parent_y, parent_y],
                         mode="lines",
-                        line=dict(color="darkblue", width=1),
+                        line={"color": "darkblue", "width": 1},
                         hoverinfo="none",
                         showlegend=False,
                     )
@@ -114,7 +114,7 @@ def plot_dendrogram(parents: list[int] | None, altitude: list[Any] | None) -> go
             x=leaf_x,
             y=leaf_y,
             mode="markers",
-            marker=dict(size=6, color="darkblue"),
+            marker={"size": 6, "color": "darkblue"},
             text=[f"Region {i}" for i in leaf_nodes],
             hoverinfo="text",
             showlegend=False,

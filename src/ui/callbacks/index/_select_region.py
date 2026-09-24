@@ -1,7 +1,8 @@
+from typing import Any
+
 import numpy as np
 
 from dash import ctx
-from typing import Any
 
 
 def select_region(

@@ -1,6 +1,6 @@
-from imageio.v3 import imread
-
 import base64
+
+from imageio.v3 import imread
 
 
 def load_image(content: str) -> list[list[list[int]]]:

@@ -1,4 +1,4 @@
 from ._index import IndexPage
 from ._page import AbstractPage
 
-__all__ = ["IndexPage", "AbstractPage"]
+__all__ = ["AbstractPage", "IndexPage"]
