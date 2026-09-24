@@ -37,7 +37,7 @@ class IndexPage(AbstractPage):
                                             value="#FF0000",
                                         )
                                     ]
-                                ),  # type: ignore
+                                ),
                             ]
                         ),
                         body=True,

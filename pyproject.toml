@@ -12,7 +12,6 @@ dependencies = [
     "loguru>=0.7.3",
     "numba>=0.67.0",
     "scikit-image>=0.26.0",
-    "ty>=0.0.83",
 ]
 
 [project.optional-dependencies]
@@ -24,5 +23,6 @@ doc = [
 
 [dependency-groups]
 dev = [
-    "ruff>=0.16.8",
+    "ruff==0.15.14",
+    "ty==0.0.38"
 ]
