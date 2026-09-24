@@ -1,7 +1,10 @@
 import numpy as np
 
-#@njit
-def _compute_attributes(label_map: np.ndarray, img: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+
+# @njit
+def _compute_attributes(
+    label_map: np.ndarray, img: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     N = label_map.max() + 1
     sum_p = np.zeros((N, 2), dtype=np.uint32)
     sum_v = None
@@ -21,6 +24,9 @@ def _compute_attributes(label_map: np.ndarray, img: np.ndarray) -> tuple[np.ndar
 
     return sum_p, sum_v, area
 
-def compute_centroid_and_mean(label_map: np.ndarray, img: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+
+def compute_centroid_and_mean(
+    label_map: np.ndarray, img: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
     sum_p, sum_v, area = _compute_attributes(label_map, img)
     return sum_p / area[:, None], sum_v / area[:, None]

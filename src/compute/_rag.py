@@ -1,6 +1,7 @@
 import numpy as np
 from numba import njit
 
+
 @njit
 def _build_rag(label_map: np.ndarray, region_model: np.ndarray) -> np.ndarray:
     DL = (0, -1, 0, 1)
@@ -14,14 +15,22 @@ def _build_rag(label_map: np.ndarray, region_model: np.ndarray) -> np.ndarray:
             for dl, dc in zip(DL, DC):
                 ni = i + dl
                 nc = c + dc
-                if ni < 0 or nc < 0 or ni >= label_map.shape[0] or nc >= label_map.shape[1]:
+                if (
+                    ni < 0
+                    or nc < 0
+                    or ni >= label_map.shape[0]
+                    or nc >= label_map.shape[1]
+                ):
                     continue
                 a = label_map[i, c]
                 b = label_map[ni, nc]
                 if a != b:
-                    res[a, b] = res[b, a] = np.linalg.norm(region_model[a] - region_model[b])
+                    res[a, b] = res[b, a] = np.linalg.norm(
+                        region_model[a] - region_model[b]
+                    )
 
     return res
+
 
 class RAG:
     def __init__(self, adj_matrix: np.ndarray, region_model: np.ndarray):
@@ -50,12 +59,14 @@ class RAG:
         for n in range(centroid.shape[0]):
             for d in range(n, centroid.shape[0]):
                 if self._adj_matrix[n, d] >= 0:
-                    res.append([
-                        centroid[n, 0],
-                        centroid[n, 1],
-                        centroid[d, 0],
-                        centroid[d, 1],
-                        self._adj_matrix[n, d]
-                    ])
+                    res.append(
+                        [
+                            centroid[n, 0],
+                            centroid[n, 1],
+                            centroid[d, 0],
+                            centroid[d, 1],
+                            self._adj_matrix[n, d],
+                        ]
+                    )
 
         return np.asarray(res)

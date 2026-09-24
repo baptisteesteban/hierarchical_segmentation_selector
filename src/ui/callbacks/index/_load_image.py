@@ -2,6 +2,7 @@ from imageio.v3 import imread
 
 import base64
 
+
 def load_image(content: str) -> list[list[list[int]]]:
     _, encoded = content.split(",", 1)
     image_bytes = base64.b64decode(encoded)

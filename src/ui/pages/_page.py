@@ -4,8 +4,11 @@ from loguru import logger
 
 from abc import ABC, abstractmethod
 
+
 class AbstractPage(ABC):
-    def __init__(self, app: Dash, name: str, layout: list, stores: list[dcc.Store] | None = None):
+    def __init__(
+        self, app: Dash, name: str, layout: list, stores: list[dcc.Store] | None = None
+    ):
         self._app = app
         self._name = name
         self._layout = layout

@@ -3,13 +3,14 @@ from numba import njit
 
 from ._rag import RAG
 
+
 @njit
 def _find_root(parent: list[int], n: int) -> int:
     # Find root
     r = n
     while parent[r] >= 0:
         r = parent[r]
-    
+
     # Path compression
     q = n
     while parent[q] >= 0:
@@ -18,6 +19,7 @@ def _find_root(parent: list[int], n: int) -> int:
         q = tmp
 
     return r
+
 
 @njit
 def _edges_from_rag(adj_mat: np.ndarray) -> list[tuple[int, int, float]]:
@@ -30,13 +32,16 @@ def _edges_from_rag(adj_mat: np.ndarray) -> list[tuple[int, int, float]]:
 
     return edges
 
-def _kruskal(sorted_edges: list[tuple[int, int, float]], rag_num_nodes: int) -> tuple[list[int], list[float]]:
+
+def _kruskal(
+    sorted_edges: list[tuple[int, int, float]], rag_num_nodes: int
+) -> tuple[list[int], list[float]]:
     parent: list[int] = [-1 for _ in range(rag_num_nodes)]
     zpar: list[int] = [-1 for _ in range(rag_num_nodes)]
     alt: list[float] = [0.0 for _ in range(rag_num_nodes)]
     cur = rag_num_nodes
 
-    for (u, v, w) in sorted_edges:
+    for u, v, w in sorted_edges:
         ru = _find_root(zpar, u)
         rv = _find_root(zpar, v)
         if ru != rv:
@@ -48,11 +53,14 @@ def _kruskal(sorted_edges: list[tuple[int, int, float]], rag_num_nodes: int) -> 
 
     return parent, alt
 
+
 @njit
-def _canonize(parent: list[int], altitude: list[float], rag_num_nodes: int) -> tuple[list[int], list[float]]:
+def _canonize(
+    parent: list[int], altitude: list[float], rag_num_nodes: int
+) -> tuple[list[int], list[float]]:
     qct_parent = parent.copy()
     qct_altitude = altitude.copy()
-    
+
     # Collect all non-leaf, non-root nodes by decreasing order of altitude
     nodes_to_remove = []
     for n in range(rag_num_nodes):
@@ -65,10 +73,10 @@ def _canonize(parent: list[int], altitude: list[float], rag_num_nodes: int) -> t
                     break
             if has_children:
                 nodes_to_remove.append((qct_altitude[n], n))
-    
+
     # Sort by altitude in decreasing order
     nodes_to_remove.sort(reverse=True)
-    
+
     # Process each node to remove
     for _, n in nodes_to_remove:
         p = qct_parent[n]
@@ -77,8 +85,9 @@ def _canonize(parent: list[int], altitude: list[float], rag_num_nodes: int) -> t
             for i in range(len(qct_parent)):
                 if qct_parent[i] == n:
                     qct_parent[i] = p
-    
+
     return qct_parent, qct_altitude
+
 
 def hierarchical_clustering(rag: RAG) -> tuple[list[int], list[float]]:
     e = _edges_from_rag(rag._adj_matrix)
