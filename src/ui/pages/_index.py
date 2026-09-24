@@ -32,7 +32,7 @@ class IndexPage(AbstractPage):
                                 dbc.Col(
                                     [
                                         dbc.Input(
-                                            type="color",
+                                            type="color", # type: ignore
                                             id="selection-color",
                                             value="#FF0000",
                                         )
