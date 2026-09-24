@@ -3,3 +3,4 @@
 **/__pycache__
 **/site
 **/REVIEW.md
+**/.ruff_cache

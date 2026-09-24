@@ -12,4 +12,4 @@
 
 ## Using tools
 
-* When using `ruff`, use `uv` for check on non-NixOS systems, else use the one available in the devShell.
+* When using `ruff` or `ty`, use `uv` for check on non-NixOS systems, else use the one available in the devShell.

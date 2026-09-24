@@ -12,6 +12,7 @@ dependencies = [
     "loguru>=0.7.3",
     "numba>=0.67.0",
     "scikit-image>=0.26.0",
+    "ty>=0.0.83",
 ]
 
 [project.optional-dependencies]

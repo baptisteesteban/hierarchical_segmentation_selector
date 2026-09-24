@@ -4,7 +4,7 @@ from numba import njit
 from ._rag import RAG
 
 @njit
-def _find_root(parent: np.ndarray, n: int) -> int:
+def _find_root(parent: list[int], n: int) -> int:
     # Find root
     r = n
     while parent[r] >= 0:
@@ -30,11 +30,10 @@ def _edges_from_rag(adj_mat: np.ndarray) -> list[tuple[int, int, float]]:
 
     return edges
 
-@njit
 def _kruskal(sorted_edges: list[tuple[int, int, float]], rag_num_nodes: int) -> tuple[list[int], list[float]]:
-    parent = [-1 for _ in range(rag_num_nodes)]
-    zpar = [-1 for _ in range(rag_num_nodes)]
-    alt = [0 for _ in range(rag_num_nodes)]
+    parent: list[int] = [-1 for _ in range(rag_num_nodes)]
+    zpar: list[int] = [-1 for _ in range(rag_num_nodes)]
+    alt: list[float] = [0.0 for _ in range(rag_num_nodes)]
     cur = rag_num_nodes
 
     for (u, v, w) in sorted_edges:

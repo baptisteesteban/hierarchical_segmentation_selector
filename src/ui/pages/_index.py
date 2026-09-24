@@ -15,7 +15,7 @@ class IndexPage(AbstractPage):
                     dbc.Row([
                         dbc.Col(dcc.Upload(children=[dbc.Button("Open Image")], id="upload-image", accept="image/*")),
                         dbc.Col(dbc.Button("Download Segmentation", id="download-segmentation-button")),
-                        dbc.Col([dbc.Input(type="color", id="selection-color", value="#FF0000")])
+                        dbc.Col([dbc.Input(type="color", id="selection-color", value="#FF0000")]) # type: ignore
                     ]),
                     body=True),
                 html.Hr(),
