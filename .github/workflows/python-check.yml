@@ -1,0 +1,29 @@
+name: Python Checks
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  python-checks:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v2
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run Ruff Linter
+        run: uv run ruff check
+
+      - name: Run Ruff Formatter
+        run: uv run ruff format --check
+
+      - name: Run Type Checker
+        run: uv run ty check

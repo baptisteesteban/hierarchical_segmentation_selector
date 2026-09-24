@@ -5,7 +5,11 @@ on:
       - main
 
 jobs:
+  python-checks:
+    uses: ./.github/workflows/python-check.yml
+
   build-and-publish:
+    needs: python-checks
     runs-on: ubuntu-latest
     permissions:
       contents: read
