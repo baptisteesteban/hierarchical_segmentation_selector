@@ -80,12 +80,18 @@ class IndexPage(AbstractPage):
                     dbc.Row(
                         [
                             dbc.Col(
-                                dcc.Graph(
-                                    id="image-graph",
-                                    style={
-                                        "width": "100%",
-                                        "height": "calc(100vh - 400px)",
-                                    },
+                                dcc.Loading(
+                                    id="loading-image-graph",
+                                    type="default",
+                                    children=[
+                                        dcc.Graph(
+                                            id="image-graph",
+                                            style={
+                                                "width": "100%",
+                                                "height": "calc(100vh - 400px)",
+                                            },
+                                        )
+                                    ],
                                 )
                             ),
                             dbc.Col(
@@ -161,7 +167,7 @@ class IndexPage(AbstractPage):
             image_data: list[list[list[int]]] | None,
             label_map: list[list[int]] | None,
             selected_regions: list[list[bool]] | None,
-            border: list[list[bool]],
+            border: list[list[bool]] | None,
             selected_color: str,
         ) -> Any:
             return display_image(
@@ -178,9 +184,9 @@ class IndexPage(AbstractPage):
         )
         def select_region_callback(
             click: dict[str, Any] | None,
-            borders: list[list[bool]],
+            borders: list[list[bool]] | None,
             selected_regions: list[list[bool]] | None,
-            label_map: list[list[int]],
+            label_map: list[list[int]] | None,
         ) -> list[list[bool]] | None:
             return select_region(click, borders, selected_regions, label_map)
 
