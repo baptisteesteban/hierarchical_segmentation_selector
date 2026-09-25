@@ -2,16 +2,24 @@ from typing import Any
 
 import numpy as np
 
-from dash import ctx
-
 
 def select_region(
     click: dict[str, Any] | None,
     borders: list[list[bool]] | None,
     selected_regions: list[list[bool]] | None,
     label_map: list[list[int]] | None,
+    image_data: list[list[list[int]]] | None = None,
+    triggered_id: str | None = None,
 ) -> list[list[bool]] | None:
-    if borders is None or label_map is None:
+    if triggered_id in {
+        "image-data",
+        "border-data",
+        "n-segments-input",
+        "compactness-input",
+    }:
+        return None
+
+    if image_data is None or label_map is None:
         return None
 
     label_map_np = np.asarray(label_map)
@@ -22,7 +30,7 @@ def select_region(
         if selected_regions_candidate.shape == selected_regions_np.shape:
             selected_regions_np = selected_regions_candidate
 
-    if ctx.triggered_id == "image-graph" and click is not None:
+    if triggered_id == "image-graph" and click is not None:
         points = click.get("points", [])
         if not points:
             return selected_regions_np.tolist()

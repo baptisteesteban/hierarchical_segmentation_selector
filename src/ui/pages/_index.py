@@ -1,7 +1,7 @@
 from typing import Any
 
 import dash_bootstrap_components as dbc
-from dash import Dash, Input, Output, State, dcc, html
+from dash import Dash, Input, Output, State, ctx, dcc, html
 
 from ._page import AbstractPage
 
@@ -80,18 +80,12 @@ class IndexPage(AbstractPage):
                     dbc.Row(
                         [
                             dbc.Col(
-                                dcc.Loading(
-                                    id="loading-image-graph",
-                                    type="default",
-                                    children=[
-                                        dcc.Graph(
-                                            id="image-graph",
-                                            style={
-                                                "width": "100%",
-                                                "height": "calc(100vh - 400px)",
-                                            },
-                                        )
-                                    ],
+                                dcc.Graph(
+                                    id="image-graph",
+                                    style={
+                                        "width": "100%",
+                                        "height": "calc(100vh - 400px)",
+                                    },
                                 )
                             ),
                             dbc.Col(
@@ -178,6 +172,9 @@ class IndexPage(AbstractPage):
             Output("selected-regions-data", "data"),
             Input("image-graph", "clickData"),
             Input("border-data", "data"),
+            Input("image-data", "data"),
+            Input("n-segments-input", "value"),
+            Input("compactness-input", "value"),
             State("selected-regions-data", "data"),
             State("label-map-data", "data"),
             prevent_initial_call=True,
@@ -185,10 +182,20 @@ class IndexPage(AbstractPage):
         def select_region_callback(
             click: dict[str, Any] | None,
             borders: list[list[bool]] | None,
+            image_data: list[list[list[int]]] | None,
+            n_segments: int | None,
+            compactness: float | None,
             selected_regions: list[list[bool]] | None,
             label_map: list[list[int]] | None,
         ) -> list[list[bool]] | None:
-            return select_region(click, borders, selected_regions, label_map)
+            return select_region(
+                click=click,
+                borders=borders,
+                selected_regions=selected_regions,
+                label_map=label_map,
+                image_data=image_data,
+                triggered_id=ctx.triggered_id,
+            )
 
         @self._app.callback(
             Output("segmentation-download", "data"),

@@ -53,7 +53,9 @@ def display_image(
 
     selection_overlay = selected_mask.astype(np.uint8)
     border_overlay = border_mask.astype(np.uint8)
-    selected_border_overlay = np.logical_and(border_mask, selected_mask).astype(np.uint8)
+    selected_border_overlay = np.logical_and(border_mask, selected_mask).astype(
+        np.uint8
+    )
 
     fig = go.Figure()
     if label_map is not None:
