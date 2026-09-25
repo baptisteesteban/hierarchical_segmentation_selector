@@ -1,6 +1,7 @@
 from typing import Any
 
 import dash_bootstrap_components as dbc
+import numpy as np
 from dash import Dash, Input, Output, State, ctx, dcc, html
 
 from ._page import AbstractPage
@@ -224,9 +225,20 @@ class IndexPage(AbstractPage):
             Output("dendrogram-graph", "figure"),
             Input("hierarchy-parent-data", "data"),
             Input("hierarchy-altitude-data", "data"),
+            Input("selected-regions-data", "data"),
+            Input("label-map-data", "data"),
             prevent_initial_call=True,
         )
         def plot_dendrogram_callback(
-            parent: list[int] | None, altitude: list[Any] | None
+            parent: list[int] | None,
+            altitude: list[Any] | None,
+            selected_regions: list[list[bool]] | None,
+            label_map: list[list[int]] | None,
         ) -> Any:
-            return plot_dendrogram(parent, altitude)
+            selected_labels = None
+            if selected_regions is not None and label_map is not None:
+                selected_mask = np.asarray(selected_regions, dtype=bool)
+                label_map_np = np.asarray(label_map)
+                if selected_mask.shape == label_map_np.shape:
+                    selected_labels = np.unique(label_map_np[selected_mask]).tolist()
+            return plot_dendrogram(parent, altitude, selected_labels)

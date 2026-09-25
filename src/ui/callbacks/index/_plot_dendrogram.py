@@ -5,11 +5,38 @@ import plotly.graph_objects as go
 from loguru import logger
 
 
-def plot_dendrogram(parents: list[int] | None, altitude: list[Any] | None) -> go.Figure:
+def plot_dendrogram(
+    parents: list[int] | None,
+    altitude: list[Any] | None,
+    selected_labels: list[int] | set[int] | None = None,
+) -> go.Figure:
     if parents is None or altitude is None:
         return go.Figure()
 
     fig = go.Figure()
+    selected_leaf_nodes: set[int] = set()
+    selected_branch_edges: set[tuple[int, int]] = set()
+
+    def get_leaf_nodes(node: int) -> set[int]:
+        """Return all leaf nodes under the given node."""
+        if all(parents[i] != node for i in range(len(parents))):
+            return {node}
+
+        leaves: set[int] = set()
+        for i, parent in enumerate(parents):
+            if parent == node:
+                leaves.update(get_leaf_nodes(i))
+        return leaves
+
+    if selected_labels:
+        for label in selected_labels:
+            for leaf in get_leaf_nodes(int(label)):
+                if leaf not in range(len(parents)):
+                    continue
+                selected_leaf_nodes.add(leaf)
+                parent = parents[leaf]
+                if parent != -1 and parent in range(len(parents)):
+                    selected_branch_edges.add((leaf, parent))
 
     # Build node positions using a recursive layout algorithm
     node_positions = {}  # Maps node index to (x, y) coordinates
@@ -87,6 +114,11 @@ def plot_dendrogram(parents: list[int] | None, altitude: list[Any] | None) -> go
             if node_idx in node_positions and parent_idx in node_positions:
                 child_x, child_y = node_positions[node_idx]
                 parent_x, parent_y = node_positions[parent_idx]
+                edge_color = (
+                    "#FF0000"
+                    if (node_idx, parent_idx) in selected_branch_edges
+                    else "darkblue"
+                )
 
                 # Draw vertical line from child to parent
                 fig.add_trace(
@@ -94,7 +126,7 @@ def plot_dendrogram(parents: list[int] | None, altitude: list[Any] | None) -> go
                         x=[child_x, child_x, parent_x],
                         y=[child_y, parent_y, parent_y],
                         mode="lines",
-                        line={"color": "darkblue", "width": 1},
+                        line={"color": edge_color, "width": 1},
                         hoverinfo="none",
                         showlegend=False,
                     )
@@ -108,14 +140,19 @@ def plot_dendrogram(parents: list[int] | None, altitude: list[Any] | None) -> go
     ]
     leaf_x = [node_positions[node][0] for node in leaf_nodes if node in node_positions]
     leaf_y = [node_positions[node][1] for node in leaf_nodes if node in node_positions]
+    leaf_colors = [
+        "#FF0000" if node in selected_leaf_nodes else "darkblue"
+        for node in leaf_nodes
+        if node in node_positions
+    ]
 
     fig.add_trace(
         go.Scatter(
             x=leaf_x,
             y=leaf_y,
             mode="markers",
-            marker={"size": 6, "color": "darkblue"},
-            text=[f"Region {i}" for i in leaf_nodes],
+            marker={"size": 6, "color": leaf_colors},
+            text=[f"Region {i}" for i in leaf_nodes if i in node_positions],
             hoverinfo="text",
             showlegend=False,
         )
