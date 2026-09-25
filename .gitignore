@@ -2,3 +2,6 @@
 **/.venv
 **/__pycache__
 **/site
+**/REVIEW.md
+**/.ruff_cache
+**/*.jpg

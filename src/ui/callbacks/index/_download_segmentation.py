@@ -1,12 +1,15 @@
+from io import BytesIO
+from typing import Any
+
 import numpy as np
+from dash import dcc
 from imageio.v3 import imwrite
 
-from dash import dcc
 
-from io import BytesIO
-
-def download_segmentation(click: dict, selected_regions_data: list) -> dict:
-    if selected_regions_data is None:
+def download_segmentation(
+    click: int, selected_regions_data: list[list[bool]] | None
+) -> dict[str, Any] | None:
+    if selected_regions_data is None or click == 0:
         return None
     selected_regions = np.asarray(selected_regions_data)
     buffer = BytesIO()

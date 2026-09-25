@@ -1,15 +1,16 @@
 import numpy as np
 
-from loguru import logger
+from src.compute import RAG, compute_centroid_and_mean, hierarchical_clustering
 
-from src.compute import RAG, compute_centroid_and_mean, hierarhical_clustering
 
-def compute_clustering(label_map_data, img_data):
+def compute_clustering(
+    label_map_data: list[list[int]] | None, img_data: list[list[list[int]]] | None
+) -> tuple[list[int] | None, list[float] | None]:
     if label_map_data is None:
         return None, None
     label_map = np.asarray(label_map_data)
     img = np.asarray(img_data, dtype=np.uint8)
-    centroid, mean = compute_centroid_and_mean(label_map, img)
+    _, mean = compute_centroid_and_mean(label_map, img)
     rag = RAG.build(label_map, mean)
-    parent, altitude = hierarhical_clustering(rag)
+    parent, altitude = hierarchical_clustering(rag)
     return parent, altitude

@@ -3,9 +3,9 @@ from dash_bootstrap_components.themes import BOOTSTRAP
 
 from src.ui.pages import IndexPage
 
-app = Dash(external_stylesheets=[BOOTSTRAP])
+app: Dash = Dash(external_stylesheets=[BOOTSTRAP])
 
-index = IndexPage(app)
+index: IndexPage = IndexPage(app)
 index.display()
 
 if __name__ == "__main__":
