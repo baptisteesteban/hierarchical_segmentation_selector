@@ -76,6 +76,20 @@ class IndexPage(AbstractPage):
                                     )
                                 ]
                             ),
+                            dbc.Col(
+                                [
+                                    dbc.Card(
+                                        [
+                                            dbc.Button(
+                                                "Parent region",
+                                                id="parent-region-button",
+                                                color="primary",
+                                            )
+                                        ],
+                                        body=True,
+                                    )
+                                ]
+                            ),
                         ]
                     ),
                     dbc.Row(
@@ -124,6 +138,7 @@ class IndexPage(AbstractPage):
             download_segmentation,
             load_image,
             plot_dendrogram,
+            select_parent_cluster,
             select_region,
         )
 
@@ -172,30 +187,52 @@ class IndexPage(AbstractPage):
         @self._app.callback(
             Output("selected-regions-data", "data"),
             Input("image-graph", "clickData"),
+            Input("parent-region-button", "n_clicks"),
             Input("border-data", "data"),
             Input("image-data", "data"),
             Input("n-segments-input", "value"),
             Input("compactness-input", "value"),
             State("selected-regions-data", "data"),
             State("label-map-data", "data"),
+            State("hierarchy-parent-data", "data"),
             prevent_initial_call=True,
         )
         def select_region_callback(
             click: dict[str, Any] | None,
+            parent_clicks: int | None,
             borders: list[list[bool]] | None,
             image_data: list[list[list[int]]] | None,
             n_segments: int | None,
             compactness: float | None,
             selected_regions: list[list[bool]] | None,
             label_map: list[list[int]] | None,
+            hierarchy_parent: list[int] | None,
         ) -> list[list[bool]] | None:
+            triggered = ctx.triggered_id
+            if triggered == "parent-region-button" and hierarchy_parent is not None:
+                if selected_regions is None or label_map is None:
+                    return None
+                selected_mask = np.asarray(selected_regions, dtype=bool)
+                label_map_np = np.asarray(label_map)
+                selected_labels = (
+                    np.unique(label_map_np[selected_mask]).tolist()
+                    if selected_mask.shape == label_map_np.shape
+                    else np.unique(label_map_np).tolist()
+                )
+                next_labels = select_parent_cluster(selected_labels, hierarchy_parent)
+                selected_regions_np = np.zeros_like(label_map_np, dtype=bool)
+                for label in next_labels:
+                    selected_regions_np[label_map_np == int(label)] = True
+                return selected_regions_np.tolist()
+
             return select_region(
                 click=click,
                 borders=borders,
                 selected_regions=selected_regions,
                 label_map=label_map,
                 image_data=image_data,
-                triggered_id=ctx.triggered_id,
+                triggered_id=triggered,
+                parents=hierarchy_parent,
             )
 
         @self._app.callback(

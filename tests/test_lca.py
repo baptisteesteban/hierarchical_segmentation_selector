@@ -1,6 +1,7 @@
 import unittest
 
 from src.compute import LCA
+from src.ui.callbacks.index._select_region import select_parent_cluster
 
 
 def _naive_lca(parents: list[int], u: int, v: int) -> int:
@@ -101,6 +102,13 @@ class LCATest(unittest.TestCase):
         self.assertTrue(lca.is_ancestor(4, 0))
         self.assertTrue(lca.is_ancestor(3, 1))
         self.assertFalse(lca.is_ancestor(0, 3))
+
+    def test_select_parent_cluster_uses_lca(self) -> None:
+        parents = [3, 3, 4, 4, -1]
+
+        self.assertEqual(select_parent_cluster([0], parents), {0, 1})
+        self.assertEqual(select_parent_cluster([0, 1], parents), {0, 1, 2})
+        self.assertEqual(select_parent_cluster([2], parents), {0, 1, 2})
 
     def test_invalid_empty(self) -> None:
         with self.assertRaises(ValueError):

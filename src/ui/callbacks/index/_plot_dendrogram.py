@@ -37,6 +37,14 @@ def plot_dendrogram(
             return {node}
         return {leaf for leaf in leaf_nodes if lca.is_ancestor(node, leaf)}
 
+    def add_branch_edges_from(node: int) -> None:
+        current = node
+        while current != -1:
+            parent = parents[current]
+            if parent != -1 and is_valid_node(parent):
+                selected_branch_edges.add((current, parent))
+            current = parent
+
     if selected_labels:
         for label in selected_labels:
             node = int(label)
@@ -47,9 +55,7 @@ def plot_dendrogram(
                 if not is_valid_node(leaf):
                     continue
                 selected_leaf_nodes.add(leaf)
-                parent = parents[leaf]
-                if parent != -1 and is_valid_node(parent):
-                    selected_branch_edges.add((leaf, parent))
+                add_branch_edges_from(leaf)
 
     # Build node positions using a recursive layout algorithm
     node_positions = {}  # Maps node index to (x, y) coordinates
