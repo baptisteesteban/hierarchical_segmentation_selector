@@ -78,16 +78,10 @@ It will create a directory named `site`, at the root of which the file
 - [X] SLIC Superpixel segmentation (version 0.1)
 - [X] Superpixel selector (version 0.1)
 - [X] Compute Region Adjacency Graph (version 0.1)
-- [ ] Hierarchical clustering
-- [ ] Dendrogram display
-- [ ] Choice of superpixel clustering
-    - [ ] Meanshift
-    - [ ] Watershed
-- [ ] Choice of hierarchy on the RAG
-    - [ ] Complete hierarchical clustering
-    - [ ] Binary Partition Tree
-    - [ ] Min / Max-tree
-- [ ] Changement of mask display (using opaque mask instead of colored image)
+- [X] Hierarchical clustering (version 0.1)
+- [X] Dendrogram display (version 0.1)
+- [X] Changement of mask display (using opaque mask instead of colored image) (version 0.1)
+- [ ] Improving hierarchical segmentation (Lab based rag + hierarchy)
 - [ ] Production server
 - [ ] Nix flake packaging
 - [ ] uv application packaging
