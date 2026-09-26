@@ -2,7 +2,6 @@ from typing import Any
 
 import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, State, ctx, dcc, html
-
 from ._page import AbstractPage
 
 
@@ -21,6 +20,12 @@ class IndexPage(AbstractPage):
                                         children=[dbc.Button("Open Image")],
                                         id="upload-image",
                                         accept="image/*",
+                                    )
+                                ),
+                                dbc.Col(
+                                    dbc.Button(
+                                        "Reset selection",
+                                        id="reset-selection-button",
                                     )
                                 ),
                                 dbc.Col(
@@ -75,6 +80,20 @@ class IndexPage(AbstractPage):
                                     )
                                 ]
                             ),
+                            dbc.Col(
+                                [
+                                    dbc.Card(
+                                        [
+                                            dbc.Button(
+                                                "Parent region",
+                                                id="parent-region-button",
+                                                color="primary",
+                                            )
+                                        ],
+                                        body=True,
+                                    )
+                                ]
+                            ),
                         ]
                     ),
                     dbc.Row(
@@ -98,6 +117,12 @@ class IndexPage(AbstractPage):
                                 )
                             ),
                         ]
+                    ),
+                    dbc.Alert(
+                        id="selection-error-alert",
+                        color="danger",
+                        is_open=False,
+                        duration=4000,
                     ),
                 ],
                 style={"display": "flex", "flexDirection": "column", "height": "100vh"},
@@ -170,31 +195,39 @@ class IndexPage(AbstractPage):
 
         @self._app.callback(
             Output("selected-regions-data", "data"),
+            Output("selection-error-alert", "children"),
+            Output("selection-error-alert", "is_open"),
             Input("image-graph", "clickData"),
+            Input("parent-region-button", "n_clicks"),
+            Input("reset-selection-button", "n_clicks"),
             Input("border-data", "data"),
             Input("image-data", "data"),
             Input("n-segments-input", "value"),
             Input("compactness-input", "value"),
             State("selected-regions-data", "data"),
             State("label-map-data", "data"),
+            State("hierarchy-parent-data", "data"),
             prevent_initial_call=True,
         )
         def select_region_callback(
             click: dict[str, Any] | None,
+            parent_clicks: int | None,
+            reset_clicks: int | None,
             borders: list[list[bool]] | None,
             image_data: list[list[list[int]]] | None,
             n_segments: int | None,
             compactness: float | None,
             selected_regions: list[list[bool]] | None,
             label_map: list[list[int]] | None,
-        ) -> list[list[bool]] | None:
+            hierarchy_parent: list[int] | None,
+        ) -> tuple[list[list[bool]] | None, str, bool]:
             return select_region(
                 click=click,
-                borders=borders,
                 selected_regions=selected_regions,
                 label_map=label_map,
                 image_data=image_data,
                 triggered_id=ctx.triggered_id,
+                parents=hierarchy_parent,
             )
 
         @self._app.callback(
@@ -224,9 +257,19 @@ class IndexPage(AbstractPage):
             Output("dendrogram-graph", "figure"),
             Input("hierarchy-parent-data", "data"),
             Input("hierarchy-altitude-data", "data"),
+            Input("selected-regions-data", "data"),
+            Input("label-map-data", "data"),
             prevent_initial_call=True,
         )
         def plot_dendrogram_callback(
-            parent: list[int] | None, altitude: list[Any] | None
+            parent: list[int] | None,
+            altitude: list[Any] | None,
+            selected_regions: list[list[bool]] | None,
+            label_map: list[list[int]] | None,
         ) -> Any:
-            return plot_dendrogram(parent, altitude)
+            return plot_dendrogram(
+                parent,
+                altitude,
+                selected_regions=selected_regions,
+                label_map=label_map,
+            )
