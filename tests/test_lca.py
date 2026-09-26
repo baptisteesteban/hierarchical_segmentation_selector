@@ -110,6 +110,25 @@ class LCATest(unittest.TestCase):
         self.assertEqual(select_parent_cluster([0, 1], parents), {0, 1, 2})
         self.assertEqual(select_parent_cluster([2], parents), {0, 1, 2})
 
+    def test_select_parent_cluster_rejects_internal_nodes(self) -> None:
+        parents = [3, 3, 4, 4, -1]
+
+        with self.assertRaises(ValueError):
+            select_parent_cluster([3], parents)
+
+    def test_select_parent_cluster_rejects_out_of_bounds(self) -> None:
+        parents = [3, 3, 4, 4, -1]
+
+        with self.assertRaises(ValueError):
+            select_parent_cluster([99], parents)
+
+    def test_select_parent_cluster_does_not_overshoot_from_partial_lca(self) -> None:
+        # LCA(0, 2) is node 4 with descendants {0, 1, 2}; the parent (node 5)
+        # adds leaf 3 and must not be selected on the first parent action.
+        parents = [4, 4, 4, 5, 5, -1]
+
+        self.assertEqual(select_parent_cluster([0, 2], parents), {0, 1, 2})
+
     def test_invalid_empty(self) -> None:
         with self.assertRaises(ValueError):
             LCA([])

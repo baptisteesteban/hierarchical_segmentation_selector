@@ -28,24 +28,45 @@ def plot_dendrogram(
     fig = go.Figure()
     selected_leaf_nodes: set[int] = set()
     selected_branch_edges: set[tuple[int, int]] = set()
+    depth_cache: dict[int, int] = {}
+    leaf_descendants_cache: dict[int, set[int]] = {}
 
     def is_valid_node(node: int) -> bool:
         return 0 <= node < len(parents)
 
     def get_leaf_descendants(node: int) -> set[int]:
+        if node in leaf_descendants_cache:
+            return leaf_descendants_cache[node]
         if node in leaf_node_set:
-            return {node}
-        return {leaf for leaf in leaf_nodes if lca.is_ancestor(node, leaf)}
+            leaf_descendants_cache[node] = {node}
+            return leaf_descendants_cache[node]
+        leaf_descendants_cache[node] = {
+            leaf for leaf in leaf_nodes if lca.is_ancestor(node, leaf)
+        }
+        return leaf_descendants_cache[node]
 
-    def add_branch_edges_from(node: int) -> None:
+    def get_depth(node: int) -> int:
+        if node in depth_cache:
+            return depth_cache[node]
+
+        depth = 0
         current = node
-        while current != -1:
+        while parents[current] != -1:
+            depth += 1
+            current = parents[current]
+        depth_cache[node] = depth
+        return depth
+
+    def add_branch_edges_from(node: int, stop_at: int | None = None) -> None:
+        current = node
+        while current != -1 and (stop_at is None or current != stop_at):
             parent = parents[current]
             if parent != -1 and is_valid_node(parent):
                 selected_branch_edges.add((current, parent))
             current = parent
 
     if selected_labels:
+        selected_leaves: set[int] = set()
         for label in selected_labels:
             node = int(label)
             if not is_valid_node(node):
@@ -54,8 +75,32 @@ def plot_dendrogram(
             for leaf in get_leaf_descendants(node):
                 if not is_valid_node(leaf):
                     continue
-                selected_leaf_nodes.add(leaf)
-                add_branch_edges_from(leaf)
+                selected_leaves.add(leaf)
+
+        if selected_leaves:
+            selected_leaf_nodes = selected_leaves.copy()
+            selected_leaf_set = selected_leaves.copy()
+
+            # Build maximal fully selected regions. A region is fully selected
+            # when all its descendant leaves are selected.
+            fully_selected_nodes = {
+                node
+                for node in range(len(parents))
+                if get_leaf_descendants(node).issubset(selected_leaf_set)
+                and get_leaf_descendants(node)
+            }
+
+            maximal_selected_nodes = {
+                node
+                for node in fully_selected_nodes
+                if parents[node] == -1 or parents[node] not in fully_selected_nodes
+            }
+
+            for node in sorted(maximal_selected_nodes, key=get_depth):
+                if node in leaf_node_set:
+                    continue
+                for leaf in get_leaf_descendants(node):
+                    add_branch_edges_from(leaf, stop_at=node)
 
     # Build node positions using a recursive layout algorithm
     node_positions = {}  # Maps node index to (x, y) coordinates

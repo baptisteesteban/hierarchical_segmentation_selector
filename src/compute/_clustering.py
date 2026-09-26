@@ -4,6 +4,24 @@ from numba import njit
 from ._rag import RAG
 
 
+def _validate_parent_table(parent: list[int]) -> None:
+    if not parent:
+        raise ValueError("Hierarchy parent table cannot be empty")
+
+    num_nodes = len(parent)
+    roots = [idx for idx, value in enumerate(parent) if value == -1]
+    if len(roots) != 1:
+        raise ValueError("Hierarchy parent table must contain exactly one root")
+
+    for node, value in enumerate(parent):
+        if value == -1:
+            continue
+        if value < 0 or value >= num_nodes:
+            raise ValueError(f"Invalid parent index at node {node}: {value}")
+        if value == node:
+            raise ValueError(f"Node {node} cannot be its own parent")
+
+
 @njit
 def _find_root(parent: list[int], n: int) -> int:
     # Find root
@@ -95,5 +113,6 @@ def hierarchical_clustering(rag: RAG) -> tuple[list[int], list[float]]:
 
     parent, altitude = _kruskal(e, rag.num_nodes)
     parent, altitude = _canonize(parent, altitude, rag.num_nodes)
+    _validate_parent_table(parent)
 
     return parent, altitude

@@ -31,13 +31,23 @@ def select_parent_cluster(
         raise ValueError("Selected label index out of bounds for the hierarchy")
 
     lca = LCA(parents)
+    if any(lca.children[label] for label in labels):
+        raise ValueError("Selected labels must reference leaf regions")
+
     current = min(labels)
     for label in sorted(labels - {current}):
         current = lca(current, label)
 
+    current_cluster = _leaf_descendants(parents, current)
+
+    # If the current selection is only a partial subset under the LCA,
+    # first snap to that minimal enclosing cluster before moving one level up.
+    if labels != current_cluster:
+        return current_cluster
+
     parent = parents[current]
     if parent == -1:
-        return _leaf_descendants(parents, current)
+        return current_cluster
     return _leaf_descendants(parents, parent)
 
 
