@@ -1,19 +1,8 @@
 from typing import Any
 
 import dash_bootstrap_components as dbc
-import numpy as np
 from dash import Dash, Input, Output, State, ctx, dcc, html
-from loguru import logger
-
 from ._page import AbstractPage
-
-
-def _selected_labels_from_mask(
-    selected_mask: np.ndarray, label_map: np.ndarray
-) -> list[int]:
-    if selected_mask.shape != label_map.shape:
-        raise ValueError("Selection shape does not match current label-map shape")
-    return [int(label) for label in np.unique(label_map[selected_mask]).tolist()]
 
 
 class IndexPage(AbstractPage):
@@ -159,7 +148,6 @@ class IndexPage(AbstractPage):
             download_segmentation,
             load_image,
             plot_dendrogram,
-            select_parent_cluster,
             select_region,
         )
 
@@ -233,58 +221,14 @@ class IndexPage(AbstractPage):
             label_map: list[list[int]] | None,
             hierarchy_parent: list[int] | None,
         ) -> tuple[list[list[bool]] | None, str, bool]:
-            triggered = ctx.triggered_id
-            if triggered == "reset-selection-button":
-                if label_map is None:
-                    return None, "", False
-                label_map_np = np.asarray(label_map)
-                return np.zeros_like(label_map_np, dtype=bool).tolist(), "", False
-
-            if triggered == "parent-region-button" and hierarchy_parent is not None:
-                if selected_regions is None or label_map is None:
-                    return None, "No selection is available to expand.", True
-                selected_mask = np.asarray(selected_regions, dtype=bool)
-                label_map_np = np.asarray(label_map)
-                try:
-                    selected_labels = _selected_labels_from_mask(
-                        selected_mask=selected_mask,
-                        label_map=label_map_np,
-                    )
-                except ValueError as exc:
-                    logger.warning(f"Parent-region selection rejected: {exc}")
-                    return (
-                        selected_regions,
-                        "Selection is out of sync with the current segmentation. Recompute segmentation or reset selection.",
-                        True,
-                    )
-
-                if not selected_labels:
-                    return selected_regions, "Select at least one region first.", True
-
-                try:
-                    next_labels = select_parent_cluster(
-                        selected_labels, hierarchy_parent
-                    )
-                except ValueError as exc:
-                    logger.warning(f"Parent-region hierarchy error: {exc}")
-                    return selected_regions, str(exc), True
-                selected_regions_np = np.zeros_like(label_map_np, dtype=bool)
-                for label in next_labels:
-                    selected_regions_np[label_map_np == int(label)] = True
-                return selected_regions_np.tolist(), "", False
-
-            return (
-                select_region(
-                    click=click,
-                    borders=borders,
-                    selected_regions=selected_regions,
-                    label_map=label_map,
-                    image_data=image_data,
-                    triggered_id=triggered,
-                    parents=hierarchy_parent,
-                ),
-                "",
-                False,
+            return select_region(
+                click=click,
+                borders=borders,
+                selected_regions=selected_regions,
+                label_map=label_map,
+                image_data=image_data,
+                triggered_id=ctx.triggered_id,
+                parents=hierarchy_parent,
             )
 
         @self._app.callback(
@@ -324,10 +268,9 @@ class IndexPage(AbstractPage):
             selected_regions: list[list[bool]] | None,
             label_map: list[list[int]] | None,
         ) -> Any:
-            selected_labels = None
-            if selected_regions is not None and label_map is not None:
-                selected_mask = np.asarray(selected_regions, dtype=bool)
-                label_map_np = np.asarray(label_map)
-                if selected_mask.shape == label_map_np.shape:
-                    selected_labels = np.unique(label_map_np[selected_mask]).tolist()
-            return plot_dendrogram(parent, altitude, selected_labels)
+            return plot_dendrogram(
+                parent,
+                altitude,
+                selected_regions=selected_regions,
+                label_map=label_map,
+            )

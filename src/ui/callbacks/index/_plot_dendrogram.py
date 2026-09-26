@@ -1,5 +1,6 @@
 from typing import Any
 
+import numpy as np
 import plotly.graph_objects as go
 
 from loguru import logger
@@ -11,9 +12,21 @@ def plot_dendrogram(
     parents: list[int] | None,
     altitude: list[Any] | None,
     selected_labels: list[int] | set[int] | None = None,
+    selected_regions: list[list[bool]] | None = None,
+    label_map: list[list[int]] | None = None,
 ) -> go.Figure:
     if parents is None or altitude is None:
         return go.Figure()
+
+    if (
+        selected_labels is None
+        and selected_regions is not None
+        and label_map is not None
+    ):
+        selected_mask = np.asarray(selected_regions, dtype=bool)
+        label_map_np = np.asarray(label_map)
+        if selected_mask.shape == label_map_np.shape:
+            selected_labels = np.unique(label_map_np[selected_mask]).tolist()
 
     try:
         lca = LCA(parents)
