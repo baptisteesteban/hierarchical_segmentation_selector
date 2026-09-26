@@ -223,7 +223,6 @@ class IndexPage(AbstractPage):
         ) -> tuple[list[list[bool]] | None, str, bool]:
             return select_region(
                 click=click,
-                borders=borders,
                 selected_regions=selected_regions,
                 label_map=label_map,
                 image_data=image_data,

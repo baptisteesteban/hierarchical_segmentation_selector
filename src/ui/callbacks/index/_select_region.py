@@ -51,41 +51,13 @@ def select_parent_cluster(
     return _leaf_descendants(parents, parent)
 
 
-def select_cluster_by_wheel(
-    selected_labels: Iterable[int], parents: list[int], wheel_delta: int
-) -> set[int]:
-    """Move one step in the hierarchy according to the wheel direction.
-
-    Positive wheel movement selects the parent region; negative movement selects
-    the first child sub-region when available.
-    """
-    labels = {int(label) for label in selected_labels}
-    if not labels:
-        return set()
-
-    if wheel_delta > 0:
-        return select_parent_cluster(labels, parents)
-
-    lca = LCA(parents)
-    current = min(labels)
-    for label in sorted(labels - {current}):
-        current = lca(current, label)
-
-    children = lca.children[current]
-    if not children:
-        return {current}
-    return _leaf_descendants(parents, children[0])
-
-
 def select_region(
     click: dict[str, Any] | None,
-    borders: list[list[bool]] | None,
     selected_regions: list[list[bool]] | None,
     label_map: list[list[int]] | None,
     image_data: list[list[list[int]]] | None = None,
     triggered_id: str | None = None,
     parents: list[int] | None = None,
-    wheel_data: dict[str, Any] | None = None,
 ) -> tuple[list[list[bool]] | None, str, bool]:
     if triggered_id == "reset-selection-button":
         if label_map is None:
@@ -142,18 +114,6 @@ def select_region(
         selected_regions_candidate = np.asarray(selected_regions, dtype=bool)
         if selected_regions_candidate.shape == selected_regions_np.shape:
             selected_regions_np = selected_regions_candidate
-
-    if triggered_id == "dendrogram-wheel-data" and parents is not None:
-        delta = int(wheel_data.get("delta", 0)) if wheel_data else 0
-        if delta != 0:
-            selected_labels = np.unique(label_map_np[selected_regions_np]).tolist()
-            if not selected_labels:
-                selected_labels = np.unique(label_map_np).tolist()
-            next_labels = select_cluster_by_wheel(selected_labels, parents, delta)
-            selected_regions_np[:] = False
-            for label in next_labels:
-                selected_regions_np[label_map_np == int(label)] = True
-            return selected_regions_np.tolist(), "", False
 
     if triggered_id == "image-graph" and click is not None:
         points = click.get("points", [])

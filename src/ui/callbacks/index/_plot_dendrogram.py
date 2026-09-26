@@ -88,8 +88,6 @@ def plot_dendrogram(
                 continue
 
             for leaf in get_leaf_descendants(node):
-                if not is_valid_node(leaf):
-                    continue
                 selected_leaves.add(leaf)
 
         if selected_leaves:
@@ -153,20 +151,12 @@ def plot_dendrogram(
 
         return (x, y)
 
-    # Find the root node(s)
-    roots = [lca.root]
-
-    if not roots:
-        logger.warning("No root node found in dendrogram")
-        return fig
-
     # Layout from root
     num_leaves = len(leaf_nodes)
     if num_leaves == 0:
         num_leaves = len(parents)
 
-    for root in roots:
-        layout_node(root, 0, num_leaves)
+    layout_node(lca.root, 0, num_leaves)
 
     # Draw connections (lines) for all parent-child relationships
     for node_idx in range(len(parents)):

@@ -13,7 +13,6 @@ class IndexParentSelectionTest(unittest.TestCase):
 
         next_regions, message, is_open = select_region(
             click=None,
-            borders=None,
             selected_regions=selected_regions,
             label_map=label_map,
             image_data=image_data,
@@ -34,7 +33,6 @@ class IndexParentSelectionTest(unittest.TestCase):
 
         next_regions, message, is_open = select_region(
             click=None,
-            borders=None,
             selected_regions=selected_regions,
             label_map=label_map.tolist(),
             image_data=image_data,
