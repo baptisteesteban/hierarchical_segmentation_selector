@@ -17,9 +17,7 @@ class PlotDendrogramSelectedLeavesTest(unittest.TestCase):
 
         line_traces = fig.data[:-1]
         highlighted_edges = [
-            trace.line.color
-            for trace in line_traces
-            if trace.line.color == "#FF0000"
+            trace.line.color for trace in line_traces if trace.line.color == "#FF0000"
         ]
         self.assertTrue(highlighted_edges)
 

@@ -4,7 +4,11 @@ from ._display_image import display_image
 from ._download_segmentation import download_segmentation
 from ._load_image import load_image
 from ._plot_dendrogram import plot_dendrogram
-from ._select_region import select_cluster_by_wheel, select_parent_cluster, select_region
+from ._select_region import (
+    select_cluster_by_wheel,
+    select_parent_cluster,
+    select_region,
+)
 
 __all__ = [
     "compute_clustering",

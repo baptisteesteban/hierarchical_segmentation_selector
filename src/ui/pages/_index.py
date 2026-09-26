@@ -12,9 +12,7 @@ def _selected_labels_from_mask(
     selected_mask: np.ndarray, label_map: np.ndarray
 ) -> list[int]:
     if selected_mask.shape != label_map.shape:
-        raise ValueError(
-            "Selection shape does not match current label-map shape"
-        )
+        raise ValueError("Selection shape does not match current label-map shape")
     return [int(label) for label in np.unique(label_map[selected_mask]).tolist()]
 
 
@@ -264,7 +262,9 @@ class IndexPage(AbstractPage):
                     return selected_regions, "Select at least one region first.", True
 
                 try:
-                    next_labels = select_parent_cluster(selected_labels, hierarchy_parent)
+                    next_labels = select_parent_cluster(
+                        selected_labels, hierarchy_parent
+                    )
                 except ValueError as exc:
                     logger.warning(f"Parent-region hierarchy error: {exc}")
                     return selected_regions, str(exc), True

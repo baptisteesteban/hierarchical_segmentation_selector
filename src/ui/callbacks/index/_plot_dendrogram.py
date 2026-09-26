@@ -22,7 +22,9 @@ def plot_dendrogram(
         return go.Figure()
 
     children = lca.children
-    leaf_nodes = [node for node, node_children in enumerate(children) if not node_children]
+    leaf_nodes = [
+        node for node, node_children in enumerate(children) if not node_children
+    ]
     leaf_node_set = set(leaf_nodes)
 
     fig = go.Figure()
