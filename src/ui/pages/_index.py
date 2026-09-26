@@ -26,6 +26,12 @@ class IndexPage(AbstractPage):
                                 ),
                                 dbc.Col(
                                     dbc.Button(
+                                        "Reset selection",
+                                        id="reset-selection-button",
+                                    )
+                                ),
+                                dbc.Col(
+                                    dbc.Button(
                                         "Download Segmentation",
                                         id="download-segmentation-button",
                                     )
@@ -188,6 +194,7 @@ class IndexPage(AbstractPage):
             Output("selected-regions-data", "data"),
             Input("image-graph", "clickData"),
             Input("parent-region-button", "n_clicks"),
+            Input("reset-selection-button", "n_clicks"),
             Input("border-data", "data"),
             Input("image-data", "data"),
             Input("n-segments-input", "value"),
@@ -200,6 +207,7 @@ class IndexPage(AbstractPage):
         def select_region_callback(
             click: dict[str, Any] | None,
             parent_clicks: int | None,
+            reset_clicks: int | None,
             borders: list[list[bool]] | None,
             image_data: list[list[list[int]]] | None,
             n_segments: int | None,
@@ -209,6 +217,12 @@ class IndexPage(AbstractPage):
             hierarchy_parent: list[int] | None,
         ) -> list[list[bool]] | None:
             triggered = ctx.triggered_id
+            if triggered == "reset-selection-button":
+                if label_map is None:
+                    return None
+                label_map_np = np.asarray(label_map)
+                return np.zeros_like(label_map_np, dtype=bool).tolist()
+
             if triggered == "parent-region-button" and hierarchy_parent is not None:
                 if selected_regions is None or label_map is None:
                     return None
