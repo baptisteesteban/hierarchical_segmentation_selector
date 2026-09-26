@@ -81,7 +81,7 @@ It will create a directory named `site`, at the root of which the file
 - [X] Hierarchical clustering (version 0.1)
 - [X] Dendrogram display (version 0.1)
 - [X] Changement of mask display (using opaque mask instead of colored image) (version 0.1)
-- [ ] Improving hierarchical segmentation (Lab based rag + hierarchy)
+- [ ] Improving hierarchical segmentation (Lab based rag + BPT hierarchy)
 - [ ] Production server
 - [ ] Nix flake packaging
 - [ ] uv application packaging

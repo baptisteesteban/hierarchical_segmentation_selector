@@ -1,5 +1,7 @@
 import numpy as np
 
+from skimage.color import rgb2lab
+
 from src.compute import RAG, compute_centroid_and_mean, hierarchical_clustering
 
 
@@ -10,6 +12,8 @@ def compute_clustering(
         return None, None
     label_map = np.asarray(label_map_data)
     img = np.asarray(img_data, dtype=np.uint8)
+    if img.ndim == 3 and img.shape[2] == 3:
+        img = rgb2lab(img)
     _, mean = compute_centroid_and_mean(label_map, img)
     rag = RAG.build(label_map, mean)
     parent, altitude = hierarchical_clustering(rag)
