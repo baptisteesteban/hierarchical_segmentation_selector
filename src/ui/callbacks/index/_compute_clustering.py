@@ -2,7 +2,7 @@ import numpy as np
 
 from skimage.color import rgb2lab
 
-from src.compute import RAG, compute_centroid_and_mean, hierarchical_clustering
+from src.compute import RAG, compute_centroid_and_mean, hierarchical_clustering, build_bpt
 
 
 def compute_clustering(
@@ -16,5 +16,8 @@ def compute_clustering(
         img = rgb2lab(img)
     _, mean = compute_centroid_and_mean(label_map, img)
     rag = RAG.build(label_map, mean)
-    parent, altitude = hierarchical_clustering(rag)
+    parent = build_bpt(img, label_map, rag._adj_matrix)
+    altitude = np.zeros(parent.shape, dtype=np.float64)
+    altitude[rag.num_nodes:] = np.arange(parent.shape[0] - rag.num_nodes)
+    #parent, altitude = hierarchical_clustering(rag)
     return parent, altitude
