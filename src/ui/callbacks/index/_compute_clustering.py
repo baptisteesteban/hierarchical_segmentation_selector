@@ -2,7 +2,13 @@ import numpy as np
 
 from skimage.color import rgb2lab
 
-from src.compute import RAG, compute_centroid_and_mean, hierarchical_clustering, build_bpt
+from src.compute import (
+    RAG,
+    compute_centroid_and_mean,
+    build_bpt,
+)
+
+from loguru import logger
 
 
 def compute_clustering(
@@ -13,11 +19,14 @@ def compute_clustering(
     label_map = np.asarray(label_map_data)
     img = np.asarray(img_data, dtype=np.uint8)
     if img.ndim == 3 and img.shape[2] == 3:
+        logger.info("Using Lab")
         img = rgb2lab(img)
     _, mean = compute_centroid_and_mean(label_map, img)
     rag = RAG.build(label_map, mean)
     parent = build_bpt(img, label_map, rag._adj_matrix)
     altitude = np.zeros(parent.shape, dtype=np.float64)
-    altitude[rag.num_nodes:] = np.arange(parent.shape[0] - rag.num_nodes)
-    #parent, altitude = hierarchical_clustering(rag)
-    return parent, altitude
+    altitude[rag.num_nodes :] = np.arange(
+        parent.shape[0] - rag.num_nodes, dtype=np.float64
+    )
+    # parent, altitude = hierarchical_clustering(rag)
+    return parent.astype(int).tolist(), altitude.astype(float).tolist()

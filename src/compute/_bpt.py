@@ -2,6 +2,7 @@ import numpy as np
 
 from heapq import heappush, heappop
 
+
 class Accumulator:
     def __init__(self, is_grayscale: bool):
         self._area = 0
@@ -33,20 +34,21 @@ class Accumulator:
         new.take(self)
         new.take(other)
         return new
-    
 
-def build_bpt(img: np.ndarray, initial_partition: np.ndarray, rag: np.ndarray) -> np.ndarray:
+
+def build_bpt(
+    img: np.ndarray, initial_partition: np.ndarray, rag: np.ndarray
+) -> np.ndarray:
     N = 2 * rag.shape[0] - 1
     heap = []
     valid_nodes = [True for _ in range(rag.shape[0])]
     rag_algo = np.zeros((N, N))
-    rag_algo[:rag.shape[0], :rag.shape[0]] = rag
+    rag_algo[: rag.shape[0], : rag.shape[0]] = rag
 
     accs = [Accumulator(img.ndim == 2) for _ in range(rag.shape[0])]
-    for l in range(img.shape[0]):
+    for li in range(img.shape[0]):
         for c in range(img.shape[1]):
-            accs[initial_partition[l, c]] += img[l, c]
-
+            accs[initial_partition[li, c]] += img[li, c]
 
     # Enqueue all edges in the heap
     for v1 in range(rag.shape[0]):
@@ -73,10 +75,22 @@ def build_bpt(img: np.ndarray, initial_partition: np.ndarray, rag: np.ndarray) -
         for vn in range(new_node):
             union = accs[new_node] + accs[vn]
             if rag_algo[v1, vn] > 0:
-                rag_algo[new_node, vn] = rag_algo[vn, new_node] = accs[vn].area * np.linalg.norm(accs[vn].mean.astype(np.int16) - union.mean) + accs[new_node].area * np.linalg.norm(accs[new_node].mean.astype(np.int16) - union.mean)
+                rag_algo[new_node, vn] = rag_algo[vn, new_node] = accs[
+                    vn
+                ].area * np.linalg.norm(
+                    accs[vn].mean.astype(np.int16) - union.mean
+                ) + accs[new_node].area * np.linalg.norm(
+                    accs[new_node].mean.astype(np.int16) - union.mean
+                )
                 heappush(heap, (rag_algo[new_node, vn], (new_node, vn)))
             if rag_algo[v2, vn] > 0:
-                rag_algo[new_node, vn] = rag_algo[vn, new_node] = accs[vn].area * np.linalg.norm(accs[vn].mean.astype(np.int16) - union.mean) + accs[new_node].area * np.linalg.norm(accs[new_node].mean.astype(np.int16) - union.mean)
+                rag_algo[new_node, vn] = rag_algo[vn, new_node] = accs[
+                    vn
+                ].area * np.linalg.norm(
+                    accs[vn].mean.astype(np.int16) - union.mean
+                ) + accs[new_node].area * np.linalg.norm(
+                    accs[new_node].mean.astype(np.int16) - union.mean
+                )
                 heappush(heap, (rag_algo[new_node, vn], (new_node, vn)))
 
         new_node += 1
