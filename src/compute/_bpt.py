@@ -42,18 +42,25 @@ def build_bpt(
     N = 2 * rag.shape[0] - 1
     heap = []
     valid_nodes = [True for _ in range(rag.shape[0])]
-    rag_algo = np.zeros((N, N))
-    rag_algo[: rag.shape[0], : rag.shape[0]] = rag
+    rag_algo = np.full((N, N), -1, dtype=np.float64)
 
     accs = [Accumulator(img.ndim == 2) for _ in range(rag.shape[0])]
     for li in range(img.shape[0]):
         for c in range(img.shape[1]):
             accs[initial_partition[li, c]] += img[li, c]
 
+    rag_algo = np.zeros((N, N))
+
     # Enqueue all edges in the heap
     for v1 in range(rag.shape[0]):
         for v2 in range(v1 + 1, rag.shape[0]):
-            if rag_algo[v1, v2] > 0:
+            if rag[v1, v2] >= 0:
+                union = accs[v1] + accs[v2]
+                rag_algo[v1, v2] = rag_algo[v2, v1] = accs[v1].area * np.linalg.norm(
+                    accs[v1].mean.astype(np.int16) - union.mean
+                ) + accs[v2].area * np.linalg.norm(
+                    accs[v2].mean.astype(np.int16) - union.mean
+                )
                 heappush(heap, (rag_algo[v1, v2], (v1, v2)))
 
     parent = np.zeros(N, dtype=np.int32)
