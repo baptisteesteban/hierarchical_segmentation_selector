@@ -85,6 +85,4 @@ It will create a directory named `site`, at the root of which the file
 - [X] Dendrogram display (version 0.1)
 - [X] Changement of mask display (using opaque mask instead of colored image) (version 0.1)
 - [X] Improving hierarchical segmentation (Lab based rag + BPT hierarchy) (version 0.1)
-- [X] Production server
-- [ ] Nix flake packaging
-- [ ] uv application packaging
+- [X] Production server (version 0.1)
