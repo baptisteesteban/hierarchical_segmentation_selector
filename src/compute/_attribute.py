@@ -9,9 +9,9 @@ def _compute_attributes(
     sum_p = np.zeros((N, 2), dtype=np.uint32)
     sum_v = None
     if img.ndim == 2:
-        sum_v = np.zeros((N,), dtype=np.uint32)
+        sum_v = np.zeros((N,), dtype=np.float64)
     else:
-        sum_v = np.zeros((N, 3), dtype=np.uint32)
+        sum_v = np.zeros((N, 3), dtype=np.float64)
     area = np.zeros((N,), dtype=np.uint32)
 
     for i in range(label_map.shape[0]):
