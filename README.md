@@ -51,15 +51,18 @@ project, use the following commands:
 
 ```
 $ docker build . -t baptisteesteban/hierarchical-segmentation-selector
-$ docker run --rm -p 8050:8050 baptisteesteban/hierarchical-segmentation-selector
+$ docker run --rm -p 8000:8000 baptisteesteban/hierarchical-segmentation-selector
 ```
 
 A built image is also available in the Github Container registry and may be used
 using the following command:
 
 ```
-$ docker run --rm -p 8050:8050 ghcr.io/baptisteesteban/hierarchical-segmentation-selector:latest
+$ docker run --rm -p 8000:8000 ghcr.io/baptisteesteban/hierarchical-segmentation-selector:latest
 ```
+
+Please note that the Docker runs a production server, served using the
+[Gunicorn](https://gunicorn.org/) WSGI server.
 
 ## How to build the documentation
 
@@ -81,7 +84,5 @@ It will create a directory named `site`, at the root of which the file
 - [X] Hierarchical clustering (version 0.1)
 - [X] Dendrogram display (version 0.1)
 - [X] Changement of mask display (using opaque mask instead of colored image) (version 0.1)
-- [ ] Improving hierarchical segmentation (Lab based rag + BPT hierarchy)
-- [ ] Production server
-- [ ] Nix flake packaging
-- [ ] uv application packaging
+- [X] Improving hierarchical segmentation (Lab based rag + BPT hierarchy) (version 0.1)
+- [X] Production server (version 0.1)

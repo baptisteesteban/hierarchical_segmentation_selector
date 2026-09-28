@@ -8,6 +8,7 @@ requires-python = ">=3.13"
 dependencies = [
     "dash>=4.4.1",
     "dash-bootstrap-components>=2.0.4",
+    "gunicorn[prod]>=26.2.0",
     "imageio>=2.37.4",
     "loguru>=0.7.3",
     "numba>=0.67.0",
@@ -19,6 +20,9 @@ doc = [
     "mkdocs>=1.6.1",
     "mkdocs-mermaid2-plugin>=1.2.3",
     "mkdocs-material>=9.7.7",
+]
+prod = [
+    "gunicorn>=26.2.0",
 ]
 
 [dependency-groups]
