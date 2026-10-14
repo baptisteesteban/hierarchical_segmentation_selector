@@ -1,7 +1,7 @@
 from typing import Any
 
 import dash_bootstrap_components as dbc
-from dash import Dash, Input, Output, State, ctx, dcc, html
+from dash import Dash, Input, Output, State, ctx, dcc, html, no_update
 from ._page import AbstractPage
 
 
@@ -30,8 +30,15 @@ class IndexPage(AbstractPage):
                                 ),
                                 dbc.Col(
                                     dbc.Button(
-                                        "Download Segmentation",
+                                        "Download Mask",
                                         id="download-segmentation-button",
+                                    )
+                                ),
+                                dbc.Col(
+                                    dcc.Upload(
+                                        children=[dbc.Button("Import tree")],
+                                        id="upload-tree",
+                                        accept=".json.gz,application/gzip,application/x-gzip",
                                     )
                                 ),
                                 dbc.Col(
@@ -145,6 +152,7 @@ class IndexPage(AbstractPage):
             dcc.Store(id="border-data"),
             dcc.Store(id="hierarchy-parent-data"),
             dcc.Store(id="hierarchy-altitude-data"),
+            dcc.Store(id="tree-import-mode", data=False),
         ]
         super().__init__(app, "Index", layout, stores)
 
@@ -158,15 +166,17 @@ class IndexPage(AbstractPage):
             load_image,
             plot_dendrogram,
             select_region,
+            upload_tree_information,
         )
 
         @self._app.callback(
             Output("image-data", "data"),
+            Output("tree-import-mode", "data"),
             Input("upload-image", "contents"),
             prevent_initial_call=True,
         )
-        def load_image_callback(contents: str) -> list[list[list[int]]]:
-            return load_image(contents)
+        def load_image_callback(contents: str) -> tuple[list[list[list[int]]], bool]:
+            return load_image(contents), False
 
         @self._app.callback(
             Output("download-tree-button", "disabled"),
@@ -180,17 +190,23 @@ class IndexPage(AbstractPage):
         @self._app.callback(
             Output("label-map-data", "data"),
             Output("border-data", "data"),
+            Output("tree-import-mode", "data", allow_duplicate=True),
             Input("image-data", "data"),
             Input("n-segments-input", "value"),
             Input("compactness-input", "value"),
+            State("tree-import-mode", "data"),
             prevent_initial_call=True,
         )
         def compute_label_map_callback(
             image_data: list[list[list[int]]] | None,
             n_segments: int,
             compactness: float,
-        ) -> tuple[list[list[int]] | None, list[list[bool]] | None]:
-            return compute_label_map(image_data, n_segments, compactness)
+            tree_import_mode: bool | None,
+        ) -> tuple[list[list[int]] | None, list[list[bool]] | None, bool]:
+            if tree_import_mode and ctx.triggered_id == "image-data":
+                return no_update, no_update, no_update
+            label_map, border = compute_label_map(image_data, n_segments, compactness)
+            return label_map, border, False
 
         @self._app.callback(
             Output("image-graph", "figure"),
@@ -225,6 +241,7 @@ class IndexPage(AbstractPage):
             State("selected-regions-data", "data"),
             State("label-map-data", "data"),
             State("hierarchy-parent-data", "data"),
+            State("tree-import-mode", "data"),
             prevent_initial_call=True,
         )
         def select_region_callback(
@@ -238,7 +255,14 @@ class IndexPage(AbstractPage):
             selected_regions: list[list[bool]] | None,
             label_map: list[list[int]] | None,
             hierarchy_parent: list[int] | None,
+            tree_import_mode: bool | None,
         ) -> tuple[list[list[bool]] | None, str, bool]:
+            if tree_import_mode and ctx.triggered_id in {
+                "image-data",
+                "border-data",
+            }:
+                return no_update, "", False
+
             return select_region(
                 click=click,
                 selected_regions=selected_regions,
@@ -287,15 +311,46 @@ class IndexPage(AbstractPage):
             )
 
         @self._app.callback(
+            Output("image-data", "data", allow_duplicate=True),
+            Output("label-map-data", "data", allow_duplicate=True),
+            Output("selected-regions-data", "data", allow_duplicate=True),
+            Output("border-data", "data", allow_duplicate=True),
+            Output("hierarchy-parent-data", "data", allow_duplicate=True),
+            Output("hierarchy-altitude-data", "data", allow_duplicate=True),
+            Output("tree-import-mode", "data", allow_duplicate=True),
+            Input("upload-tree", "contents"),
+            prevent_initial_call=True,
+        )
+        def upload_tree_callback(
+            content: str | None,
+        ) -> tuple[
+            list[list[list[int]]],
+            list[list[int]],
+            list[list[bool]],
+            list[list[bool]],
+            list[int],
+            list[float] | None,
+            bool,
+        ]:
+            imported = upload_tree_information(content)
+            return (*imported, True)
+
+
+        @self._app.callback(
             Output("hierarchy-parent-data", "data"),
             Output("hierarchy-altitude-data", "data"),
             Input("label-map-data", "data"),
             State("image-data", "data"),
+            State("tree-import-mode", "data"),
             prevent_initial_call=True,
         )
         def compute_clustering_callback(
-            label_map: list[list[int]] | None, img: list[list[list[int]]] | None
+            label_map: list[list[int]] | None,
+            img: list[list[list[int]]] | None,
+            tree_import_mode: bool | None,
         ) -> tuple[list[int] | None, list[float] | None]:
+            if tree_import_mode:
+                return no_update, no_update
             return compute_clustering(label_map, img)
 
         @self._app.callback(

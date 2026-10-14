@@ -10,6 +10,9 @@ from pathlib import Path
 from typing import Any
 
 from loguru import logger
+from skimage.morphology import dilation, footprint_rectangle
+
+from src.compute import LCA
 
 
 @dataclass
@@ -122,3 +125,78 @@ def download_tree_information(
         Path(output_path).unlink(missing_ok=True)
 
     return dcc.send_bytes(exported_bytes, "tree_information.json.gz")
+
+
+def upload_tree_information(
+    content: str | None,
+) -> tuple[
+    list[list[list[int]]],
+    list[list[int]],
+    list[list[bool]],
+    list[list[bool]],
+    list[int],
+    list[float] | None,
+]:
+    if content is None:
+        raise ValueError("Missing uploaded tree content")
+
+    _, encoded = content.split(",", 1)
+    compressed_bytes = base64.b64decode(encoded)
+
+    with tempfile.NamedTemporaryFile(suffix=".json.gz", delete=False) as file:
+        input_path = file.name
+        file.write(compressed_bytes)
+
+    try:
+        tree_information = import_tree_information(input_path)
+    finally:
+        Path(input_path).unlink(missing_ok=True)
+
+    label_map = np.asarray(tree_information.nodemap)
+    if label_map.ndim != 2:
+        raise ValueError("Imported nodemap must be a 2D array")
+
+    selected_regions = np.zeros_like(label_map, dtype=bool)
+    if tree_information.selected_nodes.size > 0:
+        selected_nodes = np.asarray(tree_information.selected_nodes, dtype=int)
+        leaf_labels = np.unique(label_map).astype(int)
+        leaf_label_set = set(leaf_labels.tolist())
+        expanded_selected_labels: set[int] = set()
+
+        parent_array = np.asarray(tree_information.parent, dtype=int)
+        try:
+            lca = LCA(parent_array.tolist())
+        except ValueError:
+            lca = None
+
+        for node in selected_nodes.tolist():
+            if node in leaf_label_set:
+                expanded_selected_labels.add(node)
+                continue
+
+            if lca is None or node < 0 or node >= len(parent_array):
+                continue
+
+            for label in leaf_label_set:
+                if lca.is_ancestor(node, label):
+                    expanded_selected_labels.add(label)
+
+        if expanded_selected_labels:
+            selected_regions = np.isin(label_map, list(expanded_selected_labels))
+
+    borders = label_map != dilation(label_map, footprint_rectangle((3, 3)))
+
+    altitude = (
+        np.asarray(tree_information.altitude, dtype=float).tolist()
+        if tree_information.altitude is not None
+        else None
+    )
+
+    return (
+        np.asarray(tree_information.img).tolist(),
+        label_map.tolist(),
+        selected_regions.tolist(),
+        borders.tolist(),
+        np.asarray(tree_information.parent, dtype=int).tolist(),
+        altitude,
+    )
