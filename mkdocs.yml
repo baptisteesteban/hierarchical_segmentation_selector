@@ -4,6 +4,8 @@ site_author: Baptiste Esteban
 docs_dir: ./doc
 nav:
   - Home: index.md
+  - User Guide: user-guide.md
+  - Architecture: architecture.md
   - Developer: development/index.md
 plugins:
   - mermaid2

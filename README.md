@@ -1,88 +1,153 @@
-# Hierarchical Image Selector
+# Hierarchical Segmentation Selector
 
-This repository provides a [Dash](https://dash.plotly.com/) web application to
-compute superpixels and hierarchical clustering to compute segmentation based on
-the latest.
+This project is a research-oriented image segmentation tool built with Python and [Dash](https://dash.plotly.com/). It helps users segment an image into superpixels, explore a hierarchical merge tree, and interactively select regions of interest before exporting the resulting mask.
 
-## How to launch it
+The application combines:
 
-### On a system equiped with uv
+- SLIC superpixel generation via `scikit-image`
+- a region adjacency graph (RAG) built from the superpixel partition
+- agglomerative clustering through a binary partition tree (BPT)
+- a Plotly dendrogram to inspect the merge hierarchy
+- interactive region selection and parent-cluster expansion in the image view
+- JSON+gzip tree import/export for preserving the hierarchy between sessions
 
-This project is managed by the [uv](https://docs.astral.sh/uv/) package and
-project manager. If `uv` is installed, just use the following command:
+## Highlights
 
-```
-$ uv run app.py
-```
+- Open an image and compute a segmentation in a few clicks.
+- Tune the `n_segments` and `compactness` parameters in real time.
+- Click a region in the image to select it and click again to toggle it off.
+- Expand the current selection to its parent cluster in the hierarchy.
+- Export the segmentation mask as a PNG-style image payload or a saved hierarchical tree.
+- Import a previously exported tree to continue editing without recomputing the entire graph.
 
-This will install the dependencies and launch the application in debug mode (from now on).
+## Getting started
 
-### On a Nix-based system
+### Requirements
 
-This project is mainly developed using a NixOS Linux distribution, and thus is
-tested with it.  If you wish to develop the application with a Nix based system,
-ensure you can use `nix flake` and `nix command` (see
-[here](https://nixos.wiki/wiki/Flakes) for more information) and use the following command:
+- Python 3.13
+- `uv` for dependency management
+- optional: Docker or Nix for containerized and reproducible environments
 
-```
-$ nix develop 
-```
+### Run the app locally
 
-It will launch a development shell. Furthermore, this project can be use with
-[nix-direnv](https://github.com/nix-community/nix-direnv) and you may just lauch
-the nix shell automatically using direnv by using once the following command:
-
-```
-$ direnv allow
+```bash
+uv run app.py
 ```
 
-Then, you can develop or run the application as described in the previous
-section.
+This installs the dependencies and starts the Dash application in debug mode.
 
-It has to be noted that the Nix development shell is handled by a Nix flake
-using [flake-parts](https://flake.parts/) but it only handles a `x86_64-linux`
-system. If you wish to add a new system, please make a pull request to add the
-system in the `flake.nix` file.
+### Run with Nix
 
-### Using Docker
+The project is developed and tested on Nix-based systems.
 
-You can build and run a Docker image from this repository. At the root of the
-project, use the following commands:
-
-```
-$ docker build . -t baptisteesteban/hierarchical-segmentation-selector
-$ docker run --rm -p 8000:8000 baptisteesteban/hierarchical-segmentation-selector
+```bash
+nix develop
 ```
 
-A built image is also available in the Github Container registry and may be used
-using the following command:
+If you use `direnv`, you can enable the shell automatically:
 
-```
-$ docker run --rm -p 8000:8000 ghcr.io/baptisteesteban/hierarchical-segmentation-selector:latest
-```
-
-Please note that the Docker runs a production server, served using the
-[Gunicorn](https://gunicorn.org/) WSGI server.
-
-## How to build the documentation
-
-In order to build the documentation, use the following command:
-
-```
-$ uv run --extra doc mkdocs build
+```bash
+direnv allow
 ```
 
-It will create a directory named `site`, at the root of which the file
-`index.html` is the entry point and may be opened by your favorite web browser.
+### Run with Docker
 
-## TODOs
+```bash
+docker build . -t baptisteesteban/hierarchical-segmentation-selector
+docker run --rm -p 8000:8000 baptisteesteban/hierarchical-segmentation-selector
+```
 
-- [X] Design graphical interface (version 0.1)
-- [X] SLIC Superpixel segmentation (version 0.1)
-- [X] Superpixel selector (version 0.1)
-- [X] Compute Region Adjacency Graph (version 0.1)
-- [X] Hierarchical clustering (version 0.1)
-- [X] Dendrogram display (version 0.1)
-- [X] Changement of mask display (using opaque mask instead of colored image) (version 0.1)
-- [X] Improving hierarchical segmentation (Lab based rag + BPT hierarchy) (version 0.1)
-- [X] Production server (version 0.1)
+Or pull the prebuilt image:
+
+```bash
+docker run --rm -p 8000:8000 ghcr.io/baptisteesteban/hierarchical-segmentation-selector:latest
+```
+
+## Typical workflow
+
+1. Load an image with the Open Image button.
+2. Adjust the number of segments and compactness.
+3. Inspect the image and the dendrogram side by side.
+4. Click a region to select it.
+5. Use Parent region to move up the hierarchy and refine the region of interest.
+6. Reset the selection to start over.
+7. Download the resulting mask or export the hierarchy tree.
+
+## User interface
+
+The main view contains:
+
+- an image panel on the left
+- a dendrogram panel on the right
+- an action bar with image upload, reset, download, import/export, and color selection controls
+- parameter controls for `Number of segments` and `Compactness`
+- a Parent region button to expand a selected cluster to its parent node in the merge tree
+
+Selection is highlighted directly on the image with a configurable color overlay, and border pixels are shown in a stronger tone so the user can see the region boundary clearly.
+
+## Project structure
+
+```text
+.
+├── app.py                  # application entry point
+├── README.md               # overview and quickstart guide
+├── mkdocs.yml              # MkDocs configuration
+├── doc/                    # documentation pages
+├── src/
+│   ├── compute/             # segmentation, RAG, clustering, hierarchy utilities
+│   └── ui/
+│       ├── callbacks/      # Dash callback logic
+│       └── pages/          # Dash page definitions
+├── tests/                  # unit and integration tests
+├── Dockerfile              # container definition
+├── flake.nix               # Nix development shell
+├── pyproject.toml          # project metadata and dependencies
+└── site/                   # generated documentation output
+```
+
+## Building the documentation
+
+```bash
+uv run --extra doc mkdocs build
+```
+
+The generated site is written to the `site/` directory and can be opened locally in a browser.
+
+## Running the tests
+
+```bash
+uv run pytest
+```
+
+Browser-driven Dash tests are skipped by default. To run them, install a WebDriver such as ChromeDriver and use:
+
+```bash
+uv run pytest --run-dash-e2e --headless -m dash_e2e
+```
+
+## Development notes
+
+This project uses a layered architecture:
+
+- UI layer: Dash components and callback orchestration
+- computation layer: SLIC segmentation, centroid statistics, region graphs, and hierarchy construction
+- persistence layer: JSON+gzip export/import for saved analysis states
+
+The code favors explicitly typed Python data structures and uses `numpy` and `scikit-image` for computational work. The hierarchy is represented as parent arrays, which makes it easy to query ancestor relations via the `LCA` utilities.
+
+## Roadmap
+
+- [x] Graphical interface
+- [x] SLIC superpixel segmentation
+- [x] Superpixel selection
+- [x] Region adjacency graph computation
+- [x] Hierarchical clustering and dendrogram
+- [x] Selection mask overlay improvements
+- [x] Lab-based RAG and BPT hierarchy improvements
+- [x] Production server setup
+
+## License and repository status
+
+This repository is currently a research tool rather than a packaged application. The code is designed to be run from source or through the provided Docker stack.
+
+For more complete project details, see the documentation under the `doc/` directory and the developer guide in [doc/development/index.md](doc/development/index.md).
