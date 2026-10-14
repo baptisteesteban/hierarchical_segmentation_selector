@@ -35,6 +35,13 @@ class IndexPage(AbstractPage):
                                     )
                                 ),
                                 dbc.Col(
+                                    dbc.Button(
+                                        "Export tree",
+                                        id="download-tree-button",
+                                        disabled=True,
+                                    )
+                                ),
+                                dbc.Col(
                                     [
                                         dbc.Input(
                                             type="color",  # type: ignore
@@ -128,6 +135,7 @@ class IndexPage(AbstractPage):
                 style={"display": "flex", "flexDirection": "column", "height": "100vh"},
             ),
             dcc.Download(id="segmentation-download"),
+            dcc.Download(id="tree-download"),
         ]
 
         stores = [
@@ -144,6 +152,7 @@ class IndexPage(AbstractPage):
         from src.ui.callbacks.index import (
             compute_clustering,
             compute_label_map,
+            download_tree_information,
             display_image,
             download_segmentation,
             load_image,
@@ -158,6 +167,15 @@ class IndexPage(AbstractPage):
         )
         def load_image_callback(contents: str) -> list[list[list[int]]]:
             return load_image(contents)
+
+        @self._app.callback(
+            Output("download-tree-button", "disabled"),
+            Input("image-data", "data"),
+        )
+        def toggle_tree_export_button(
+            image_data: list[list[list[int]]] | None,
+        ) -> bool:
+            return image_data is None
 
         @self._app.callback(
             Output("label-map-data", "data"),
@@ -240,6 +258,33 @@ class IndexPage(AbstractPage):
             click: int, selected_regions_data: list[list[bool]] | None
         ) -> dict[str, Any] | None:
             return download_segmentation(click, selected_regions_data)
+
+        @self._app.callback(
+            Output("tree-download", "data"),
+            Input("download-tree-button", "n_clicks"),
+            State("hierarchy-parent-data", "data"),
+            State("hierarchy-altitude-data", "data"),
+            State("label-map-data", "data"),
+            State("image-data", "data"),
+            State("selected-regions-data", "data"),
+            prevent_initial_call=True,
+        )
+        def download_tree_callback(
+            click: int | None,
+            hierarchy_parent: list[int] | None,
+            hierarchy_altitude: list[float] | None,
+            label_map_data: list[list[int]] | None,
+            image_data: list[list[list[int]]] | None,
+            selected_regions_data: list[list[bool]] | None,
+        ) -> dict[str, Any] | None:
+            return download_tree_information(
+                click=click,
+                hierarchy_parent=hierarchy_parent,
+                hierarchy_altitude=hierarchy_altitude,
+                label_map_data=label_map_data,
+                image_data=image_data,
+                selected_regions_data=selected_regions_data,
+            )
 
         @self._app.callback(
             Output("hierarchy-parent-data", "data"),
