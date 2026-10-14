@@ -249,8 +249,8 @@ class IndexPage(AbstractPage):
         )
         def select_region_callback(
             click: dict[str, Any] | None,
-            parent_clicks: int | None,
-            reset_clicks: int | None,
+            _parent_clicks: int | None,
+            _reset_clicks: int | None,
             session_state: dict[str, Any] | None,
             selected_regions: list[list[bool]] | None,
         ) -> tuple[list[list[bool]] | None, str, bool]:

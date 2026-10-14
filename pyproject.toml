@@ -27,6 +27,14 @@ prod = [
 
 [dependency-groups]
 dev = [
+    "dash[testing]>=4.4.1",
+    "pytest>=8.4.2",
     "ruff==0.15.14",
     "ty==0.0.38"
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+markers = [
+    "dash_e2e: browser-based dash.integration tests (requires --run-dash-e2e)",
 ]

@@ -75,6 +75,21 @@ $ uv run --extra doc mkdocs build
 It will create a directory named `site`, at the root of which the file
 `index.html` is the entry point and may be opened by your favorite web browser.
 
+## How to run tests
+
+Run the test suite with:
+
+```bash
+uv run pytest
+```
+
+Dash browser tests are marked and skipped by default. To run them, ensure a
+WebDriver (for example ChromeDriver) is installed, then use:
+
+```bash
+uv run pytest --run-dash-e2e --headless -m dash_e2e
+```
+
 ## TODOs
 
 - [X] Design graphical interface (version 0.1)
