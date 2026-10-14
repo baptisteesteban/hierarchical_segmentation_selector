@@ -21,6 +21,12 @@ from src.ui.callbacks.index._import_export import (
     upload_tree_information,
 )
 from src.ui.callbacks.index._load_image import load_image
+from src.ui.callbacks.index._selection_state import reduce_selection_state
+from src.ui.callbacks.index._session_state import (
+    empty_session_state,
+    load_session_source,
+    materialize_session_state,
+)
 from src.ui.callbacks.index._select_region import select_region
 
 
@@ -116,6 +122,91 @@ class ComputeClusteringCallbackTest(unittest.TestCase):
         self.assertEqual(parent.count(-1), 1)
 
 
+class SessionStateCallbackTest(unittest.TestCase):
+    def test_empty_session_state_initializes_all_fields(self) -> None:
+        session_state = empty_session_state()
+
+        self.assertIsNone(session_state["image_data"])
+        self.assertIsNone(session_state["label_map"])
+        self.assertIsNone(session_state["border"])
+        self.assertIsNone(session_state["hierarchy_parent"])
+        self.assertIsNone(session_state["hierarchy_altitude"])
+        self.assertFalse(session_state["tree_import_mode"])
+        self.assertIsNone(session_state["initial_selected_regions"])
+
+    def test_load_session_source_from_image_upload(self) -> None:
+        image = np.zeros((2, 2, 3), dtype=np.uint8)
+
+        source = load_session_source(
+            triggered_id="upload-image",
+            image_contents=_to_upload_content(image),
+            tree_contents=None,
+        )
+
+        self.assertIsNotNone(source)
+        assert source is not None
+        self.assertEqual(source["kind"], "image")
+        self.assertEqual(np.asarray(source["image_data"]).shape, (2, 2, 3))
+
+    def test_load_session_source_from_tree_upload(self) -> None:
+        tree = TreeInformation(
+            parent=np.array([2, 2, -1], dtype=np.int64),
+            altitude=np.array([0.0, 0.0, 1.0], dtype=np.float64),
+            nodemap=np.array([[0, 0], [1, 1]], dtype=np.int64),
+            img=np.zeros((2, 2, 3), dtype=np.uint8),
+            selected_nodes=np.array([0], dtype=np.int64),
+        )
+
+        source = load_session_source(
+            triggered_id="upload-tree",
+            image_contents=None,
+            tree_contents=_to_tree_upload_content(tree),
+        )
+
+        self.assertIsNotNone(source)
+        assert source is not None
+        self.assertEqual(source["kind"], "tree")
+        self.assertEqual(source["hierarchy_parent"], [2, 2, -1])
+        self.assertEqual(source["selected_regions"], [[True, True], [False, False]])
+
+    def test_materialize_session_state_for_image_computes_segmentation(self) -> None:
+        image = np.zeros((4, 4, 3), dtype=np.uint8)
+        image[:2, :, :] = 255
+        source = {
+            "kind": "image",
+            "image_data": image.tolist(),
+        }
+
+        session_state = materialize_session_state(source, 2, 5.0)
+
+        self.assertFalse(session_state["tree_import_mode"])
+        self.assertIsNotNone(session_state["label_map"])
+        self.assertIsNotNone(session_state["border"])
+        self.assertIsNotNone(session_state["hierarchy_parent"])
+        self.assertIsNotNone(session_state["hierarchy_altitude"])
+        self.assertIsNone(session_state["initial_selected_regions"])
+
+    def test_materialize_session_state_for_tree_preserves_imported_state(self) -> None:
+        source = {
+            "kind": "tree",
+            "image_data": np.zeros((2, 2, 3), dtype=np.uint8).tolist(),
+            "label_map": [[0, 0], [1, 1]],
+            "selected_regions": [[True, True], [False, False]],
+            "border": [[False, True], [False, True]],
+            "hierarchy_parent": [2, 2, -1],
+            "hierarchy_altitude": [0.0, 0.0, 1.0],
+        }
+
+        session_state = materialize_session_state(source, 99, 0.0)
+
+        self.assertTrue(session_state["tree_import_mode"])
+        self.assertEqual(session_state["label_map"], source["label_map"])
+        self.assertEqual(
+            session_state["initial_selected_regions"],
+            source["selected_regions"],
+        )
+
+
 class DisplayImageCallbackTest(unittest.TestCase):
     def test_display_image_with_missing_or_invalid_image(self) -> None:
         self.assertEqual(len(display_image(None, None, None, None, "#FF0000").data), 0)
@@ -193,6 +284,28 @@ class DownloadSegmentationCallbackTest(unittest.TestCase):
 
 
 class SelectRegionCallbackTest(unittest.TestCase):
+    def test_reduce_selection_state_seeds_imported_selection(self) -> None:
+        session_state = {
+            "image_data": np.zeros((2, 2, 3), dtype=np.uint8).tolist(),
+            "label_map": [[0, 0], [1, 1]],
+            "border": [[False, True], [False, True]],
+            "hierarchy_parent": [2, 2, -1],
+            "hierarchy_altitude": [0.0, 0.0, 1.0],
+            "tree_import_mode": True,
+            "initial_selected_regions": [[True, True], [False, False]],
+        }
+
+        selected, message, is_open = reduce_selection_state(
+            triggered_id="session-state-data",
+            click=None,
+            selected_regions=None,
+            session_state=session_state,
+        )
+
+        self.assertEqual(selected, [[True, True], [False, False]])
+        self.assertEqual(message, "")
+        self.assertFalse(is_open)
+
     def test_select_region_click_toggles_whole_label(self) -> None:
         label_map = np.array([[0, 0], [1, 1]], dtype=int)
         image = np.zeros((2, 2, 3), dtype=np.uint8).tolist()

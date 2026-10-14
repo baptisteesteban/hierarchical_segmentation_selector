@@ -8,10 +8,12 @@ from ._import_export import (
 )
 from ._load_image import load_image
 from ._plot_dendrogram import plot_dendrogram
+from ._selection_state import reduce_selection_state
 from ._select_region import (
     select_parent_cluster,
     select_region,
 )
+from ._session_state import load_session_source, materialize_session_state
 
 __all__ = [
     "compute_clustering",
@@ -21,7 +23,10 @@ __all__ = [
     "download_tree_information",
     "upload_tree_information",
     "load_image",
+    "load_session_source",
+    "materialize_session_state",
     "plot_dendrogram",
+    "reduce_selection_state",
     "select_region",
     "select_parent_cluster",
 ]
