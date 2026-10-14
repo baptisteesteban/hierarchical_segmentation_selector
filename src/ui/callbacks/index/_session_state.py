@@ -59,16 +59,17 @@ def load_session_source(
     if triggered_id == "upload-image":
         if image_contents is None:
             return None
-        return {
+        image_source: UploadedImageSource = {
             "kind": "image",
             "image_data": load_image(image_contents),
         }
+        return image_source
 
     if triggered_id == "upload-tree":
         image_data, label_map, selected_regions, border, parent, altitude = (
             upload_tree_information(tree_contents)
         )
-        return {
+        tree_source: UploadedTreeSource = {
             "kind": "tree",
             "image_data": image_data,
             "label_map": label_map,
@@ -77,6 +78,7 @@ def load_session_source(
             "hierarchy_parent": parent,
             "hierarchy_altitude": altitude,
         }
+        return tree_source
 
     return None
 

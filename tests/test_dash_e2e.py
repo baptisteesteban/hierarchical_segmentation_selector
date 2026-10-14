@@ -7,7 +7,9 @@ from app import app
 def test_001_index_page_renders_without_browser_errors(dash_duo) -> None:
     dash_duo.start_server(app)
 
-    dash_duo.wait_for_text_to_equal("h1", "Hierarchical Segmentation Selector", timeout=10)
+    dash_duo.wait_for_text_to_equal(
+        "h1", "Hierarchical Segmentation Selector", timeout=10
+    )
 
     assert dash_duo.find_element("#upload-image") is not None
     assert dash_duo.find_element("#download-segmentation-button") is not None

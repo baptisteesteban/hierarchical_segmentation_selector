@@ -23,6 +23,8 @@ from src.ui.callbacks.index._import_export import (
 from src.ui.callbacks.index._load_image import load_image
 from src.ui.callbacks.index._selection_state import reduce_selection_state
 from src.ui.callbacks.index._session_state import (
+    SessionState,
+    SessionSource,
     empty_session_state,
     load_session_source,
     materialize_session_state,
@@ -91,7 +93,9 @@ class ComputeLabelMapCallbackTest(unittest.TestCase):
         image = np.zeros((6, 6, 3), dtype=np.uint8)
         image[:3, :, :] = 255
 
-        label_map, border = compute_label_map(image.tolist(), n_segments=4, compactness=5.0)
+        label_map, border = compute_label_map(
+            image.tolist(), n_segments=4, compactness=5.0
+        )
 
         self.assertIsNotNone(label_map)
         self.assertIsNotNone(border)
@@ -166,13 +170,15 @@ class SessionStateCallbackTest(unittest.TestCase):
         self.assertIsNotNone(source)
         assert source is not None
         self.assertEqual(source["kind"], "tree")
+        if source["kind"] != "tree":
+            self.fail("Expected imported tree data")
         self.assertEqual(source["hierarchy_parent"], [2, 2, -1])
         self.assertEqual(source["selected_regions"], [[True, True], [False, False]])
 
     def test_materialize_session_state_for_image_computes_segmentation(self) -> None:
         image = np.zeros((4, 4, 3), dtype=np.uint8)
         image[:2, :, :] = 255
-        source = {
+        source: SessionSource = {
             "kind": "image",
             "image_data": image.tolist(),
         }
@@ -187,7 +193,7 @@ class SessionStateCallbackTest(unittest.TestCase):
         self.assertIsNone(session_state["initial_selected_regions"])
 
     def test_materialize_session_state_for_tree_preserves_imported_state(self) -> None:
-        source = {
+        source: SessionSource = {
             "kind": "tree",
             "image_data": np.zeros((2, 2, 3), dtype=np.uint8).tolist(),
             "label_map": [[0, 0], [1, 1]],
@@ -285,7 +291,7 @@ class DownloadSegmentationCallbackTest(unittest.TestCase):
 
 class SelectRegionCallbackTest(unittest.TestCase):
     def test_reduce_selection_state_seeds_imported_selection(self) -> None:
-        session_state = {
+        session_state: SessionState = {
             "image_data": np.zeros((2, 2, 3), dtype=np.uint8).tolist(),
             "label_map": [[0, 0], [1, 1]],
             "border": [[False, True], [False, True]],
@@ -459,6 +465,8 @@ class TreeImportExportCallbackTest(unittest.TestCase):
         self.assertTrue(np.array_equal(restored.selected_nodes, tree.selected_nodes))
         self.assertIsNotNone(restored.altitude)
         assert restored.altitude is not None
+        self.assertIsNotNone(tree.altitude)
+        assert tree.altitude is not None
         self.assertTrue(np.array_equal(restored.altitude, tree.altitude))
 
     def test_download_tree_information_returns_download_payload(self) -> None:
@@ -597,11 +605,15 @@ class TreeImportExportCallbackTest(unittest.TestCase):
             dtype=bool,
         )
         self.assertTrue(
-            np.array_equal(np.asarray(imported_selected_regions, dtype=bool), expected_selected)
+            np.array_equal(
+                np.asarray(imported_selected_regions, dtype=bool), expected_selected
+            )
         )
 
         self.assertEqual(np.asarray(imported_border, dtype=bool).shape, (2, 3))
         self.assertEqual(imported_parent, tree.parent.tolist())
+        self.assertIsNotNone(tree.altitude)
+        assert tree.altitude is not None
         self.assertEqual(imported_altitude, tree.altitude.astype(float).tolist())
 
 

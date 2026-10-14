@@ -3,6 +3,8 @@ from typing import Any
 import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, State, ctx, dcc, html, no_update
 
+from src.ui.callbacks.index._session_state import SessionSource, SessionState
+
 from ._page import AbstractPage
 
 
@@ -173,7 +175,7 @@ class IndexPage(AbstractPage):
         def load_session_source_callback(
             image_contents: str | None,
             tree_contents: str | None,
-        ) -> dict[str, Any] | None:
+        ) -> SessionSource | None:
             return load_session_source(
                 ctx.triggered_id,
                 image_contents,
@@ -188,10 +190,10 @@ class IndexPage(AbstractPage):
             prevent_initial_call=True,
         )
         def materialize_session_state_callback(
-            session_source: dict[str, Any] | None,
+            session_source: SessionSource | None,
             n_segments: int | None,
             compactness: float | None,
-        ) -> dict[str, Any] | Any:
+        ) -> SessionState | Any:
             if (
                 ctx.triggered_id in {"n-segments-input", "compactness-input"}
                 and session_source is not None
@@ -209,7 +211,7 @@ class IndexPage(AbstractPage):
             Output("download-tree-button", "disabled"),
             Input("session-state-data", "data"),
         )
-        def toggle_tree_export_button(session_state: dict[str, Any] | None) -> bool:
+        def toggle_tree_export_button(session_state: SessionState | None) -> bool:
             if session_state is None:
                 return True
             return session_state.get("image_data") is None
@@ -221,12 +223,16 @@ class IndexPage(AbstractPage):
             Input("selection-color", "value"),
         )
         def display_image_callback(
-            session_state: dict[str, Any] | None,
+            session_state: SessionState | None,
             selected_regions: list[list[bool]] | None,
             selected_color: str,
         ) -> Any:
-            image_data = None if session_state is None else session_state.get("image_data")
-            label_map = None if session_state is None else session_state.get("label_map")
+            image_data = (
+                None if session_state is None else session_state.get("image_data")
+            )
+            label_map = (
+                None if session_state is None else session_state.get("label_map")
+            )
             border = None if session_state is None else session_state.get("border")
             return display_image(
                 image_data,
@@ -251,7 +257,7 @@ class IndexPage(AbstractPage):
             click: dict[str, Any] | None,
             _parent_clicks: int | None,
             _reset_clicks: int | None,
-            session_state: dict[str, Any] | None,
+            session_state: SessionState | None,
             selected_regions: list[list[bool]] | None,
         ) -> tuple[list[list[bool]] | None, str, bool]:
             return reduce_selection_state(
@@ -282,7 +288,7 @@ class IndexPage(AbstractPage):
         )
         def download_tree_callback(
             click: int | None,
-            session_state: dict[str, Any] | None,
+            session_state: SessionState | None,
             selected_regions_data: list[list[bool]] | None,
         ) -> dict[str, Any] | None:
             if session_state is None:
@@ -304,7 +310,7 @@ class IndexPage(AbstractPage):
             prevent_initial_call=True,
         )
         def plot_dendrogram_callback(
-            session_state: dict[str, Any] | None,
+            session_state: SessionState | None,
             selected_regions: list[list[bool]] | None,
         ) -> Any:
             if session_state is None:
